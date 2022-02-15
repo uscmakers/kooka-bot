@@ -1,18 +1,22 @@
+import os
+
 import cv2
 
 thres = 0.60  # Threshold to detect object
 
-cap = cv2.VideoCapture(0)
+cap = cv2.VideoCapture(1)
 cap.set(3, 1280)
 cap.set(4, 720)
 cap.set(10, 70)
 
-classFile = 'Training\coco.names'
+curDir = os.path.dirname(os.getcwd())
+
+classFile = curDir + '\Training\coco.names'
 with open(classFile, 'rt') as f:
     classNames = f.read().rstrip('\n').split('\n')
 
-configPath = 'Training\ssd_mobilenet_v3_large_coco_2020_01_14.pbtxt'
-weightsPath = 'Training\_inference_graph.pb'
+configPath = curDir + '\Training\ssd_mobilenet_v3_large_coco_2020_01_14.pbtxt'
+weightsPath = curDir + '\Training\_inference_graph.pb'
 
 net = cv2.dnn_DetectionModel(weightsPath, configPath)
 net.setInputSize(320, 320)
