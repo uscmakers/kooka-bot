@@ -9,19 +9,32 @@ class Console(object):
         super(Console, self).__init__()
         self.setGeometry(250, 330, 900, 350)
         self.setWindowTitle("Kooka")
-        self.usb1 = '/dev/ttyACM0'
-        self.usb2 = '/dev/ttyACM0'
-        self.usb3 = '/dev/ttyACM0'
+        self.usb1 = 'COM19'
+        self.usb2 = 'COM20'
+        self.usb3 = 'COM21'
         self.ser1 = ''
         self.ser2 = ''
         self.ser3 = ''
         self.baud = 9600
         try:
-            self.ser1 = serial.Serial(self.usb,self.baud)
+            self.ser1 = serial.Serial(self.usb1,self.baud)
             print("Connected")
             
         except:
-            print("Not Connected")
+            print("USB1 Not Connected")
+        try:
+            self.ser2 = serial.Serial(self.usb2,self.baud)
+            print("Connected")
+            
+        except:
+            print("USB2 Not Connected")
+        try:
+            self.ser3 = serial.Serial(self.usb3,self.baud)
+            print("Connected")
+            
+        except:
+            print("USB3 Not Connected")
+
         self.joint_1_ang = 0
         self.joint_2_ang = 0
         self.joint_3_ang = 0

@@ -25,7 +25,7 @@ public:
     }
     else
     {
-      this->frequency = 10000;
+      this->frequency = 5000;
     }
     setFrequency(this->frequency);
     mode = str;
@@ -58,7 +58,7 @@ public:
     {
       setDirection(CCW);
     }
-    coordinate();
+    //coordinate();
     drive(abs(steps));
   }
   void coordinate() 
@@ -74,7 +74,7 @@ public:
       while(digitalRead(COORDIN0) == 0);
       digitalWrite(COORDOUT,HIGH);
       while(digitalRead(COORDIN0) == 1);
-      digitalWrite(COORDOUT,LOW);
+      digitalWrite(COORDOUT,LOW); 
     }
   }
   void drive(int steps)
@@ -102,16 +102,18 @@ void setup() {
   pinMode(COORDOUT,OUTPUT);
   digitalWrite(COORDOUT,LOW);
   Serial.begin(9600);
+  myDriver.init('s');
 }
 void loop() {
   // put your main code here, to run repeatedly:
+  
   while(Serial.available()){
     rec = Serial.read();
-    if(rec=='m' || rec=='s')
-    {
-      myDriver.init(rec);
-    }
-    else if(rec=='x')
+    //if(rec=='m' || rec=='s')
+    //{
+    //  myDriver.init(rec);
+    //}
+    if(rec=='x')
     {
       myDriver.handleComm(stuff_right);
       stuff_right ="";
