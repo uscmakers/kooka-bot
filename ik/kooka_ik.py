@@ -3,7 +3,6 @@ import numpy as np
 import random
 
 
-
 class kooka_ik:
 
     # initialize parameters and joint angles + positions
@@ -31,6 +30,7 @@ class kooka_ik:
         self.joints[0] = yaw
         self.joints[1] = shoulder
         self.joints[2] = elbow
+        return self.joints
 
     # inverse kinematics calculation: outputs desired joint angles for the goal x, y, z of the arm's tip
     def ik(self, goal):              
@@ -42,6 +42,7 @@ class kooka_ik:
         self.joints[0] = theta1
         self.joints[1] = theta2
         self.joints[2] = theta3
+        return self.joints
 
     # forward kinematics calculation: outputs each joint's x, y, z
     def fk(self):                    
