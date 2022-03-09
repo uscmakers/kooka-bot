@@ -103,6 +103,7 @@ void setup() {
   digitalWrite(COORDOUT,LOW);
   Serial.begin(9600);
   myDriver.init('s');
+  pinMode(LED_BUILTIN, OUTPUT);
 }
 void loop() {
   // put your main code here, to run repeatedly:
@@ -116,7 +117,7 @@ void loop() {
     if(rec=='x')
     {
       myDriver.handleComm(stuff_right);
-      stuff_right ="";
+      stuff_right="";
     }
     else
     {

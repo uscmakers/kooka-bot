@@ -31,26 +31,26 @@ class UI(QtWidgets.QMainWindow, Console):
                 print("Robot z connection error: ",e)
         else:
             try:
-                joint_1_delta = float(self.joint_1.text())-float(self.joint_1_ang)
+                joint_1_delta = int(self.joint_1.text())-int(self.joint_1_ang)
                 print('x sent')
             except:
                 self.terminal.append("Joint 1 command value is invalid.")
 
             try:
-                joint_2_delta = float(self.joint_2.text())-float(self.joint_2_ang)
-                print(joint_2_delta)
-                print(joint_2_delta.encode())
+                joint_2_delta = int(self.joint_2.text())-int(self.joint_2_ang)
                 print('y sent')
             except:
                 self.terminal.append("Joint 2 command value is invaild.")
 
             try:
-                joint_3_delta = float(self.joint_2.text())-float(self.joint_2_ang)
+                joint_3_delta = int(self.joint_2.text())-int(self.joint_2_ang)
                 print('z sent')
             except:
                 self.terminal.append("Joint 3 command value is invaild.")
 
-            if(self.joint_1.text().isdigit() and self.joint_2.text().isdigit() and self.joint_3.text().isdigit()):
+            print(self.joint_3.text().replace("-",""))
+
+            if(self.joint_1.text().replace("-","").isdigit() and self.joint_2.text().replace("-","").isdigit() and self.joint_3.text().replace("-","").isdigit()):
                 try:
                     cmd1 = str(self.joint_1.text())+"x"
                     self.ser1.write(cmd1.encode())
@@ -58,7 +58,6 @@ class UI(QtWidgets.QMainWindow, Console):
                     self.terminal.append("Connection with the robot x doesn't exist.")
                 try:
                     cmd2 = str(self.joint_2.text())+"x"
-                    print(cmd2.encode())
                     self.ser2.write(cmd2.encode())
                 except:
                     self.terminal.append("Connection with the robot y doesn't exist.")
