@@ -47,6 +47,10 @@ public:
     this->frequency = freq;
     this->STEPTIME = 1000000/freq;
   }
+  bool calibrate() 
+  {
+    return true;
+  }
   void handleComm(String command) 
   {
     int steps = command.toInt()/0.036;
@@ -93,6 +97,7 @@ char rec;
 String stuff_right = "";
 String comm_right = "0";
 int timeprev = 0;
+bool calStatus = 0;
 void setup() {
   // put your setup code here, to run once:
   pinMode(STEPPIN,OUTPUT);
@@ -117,6 +122,13 @@ void loop() {
     if(rec=='x')
     {
       myDriver.handleComm(stuff_right);
+      stuff_right="";
+    }
+    else if(rec=='c') 
+    {
+      calStatus = myDriver.calibrate();
+      if(calStatus) Serial.print("d");
+      else Serial.print("e");
       stuff_right="";
     }
     else
