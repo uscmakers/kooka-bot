@@ -1,9 +1,6 @@
 //Globals
 #define STEPPIN  8
 #define DIRPIN   7
-#define COORDIN0 6
-#define COORDIN1 5
-#define COORDOUT 4
 #define CW 0
 #define CCW 1
 //good frequency for small motor is 10000
@@ -15,21 +12,12 @@ public:
   int STEPTIME;
   char mode;
 
-  Driver() {}
-  ~Driver() {}
-  void init(char str) 
+  Driver() 
   {
-    if(str == 'm') 
-    {
-      this->frequency = 5000;
-    }
-    else
-    {
-      this->frequency = 5000;
-    }
+    this->frequency = 5000;
     setFrequency(this->frequency);
-    mode = str;
   }
+  ~Driver() {}
   void setDirection(int dir) 
   {
     if(dir == CW)
@@ -62,24 +50,7 @@ public:
     {
       setDirection(CCW);
     }
-    //coordinate();
     drive(abs(steps));
-  }
-  void coordinate() 
-  {
-    if(mode == 'm') 
-    {
-      digitalWrite(COORDOUT,HIGH);
-      while(digitalRead(COORDIN0) == 0 || digitalRead(COORDIN1) == 0);
-      digitalWrite(COORDOUT,LOW);
-    }
-    else 
-    {
-      while(digitalRead(COORDIN0) == 0);
-      digitalWrite(COORDOUT,HIGH);
-      while(digitalRead(COORDIN0) == 1);
-      digitalWrite(COORDOUT,LOW); 
-    }
   }
   void drive(int steps)
   {
@@ -102,23 +73,13 @@ void setup() {
   // put your setup code here, to run once:
   pinMode(STEPPIN,OUTPUT);
   pinMode(DIRPIN,OUTPUT);
-  pinMode(COORDIN0,INPUT);
-  pinMode(COORDIN1,INPUT);
-  pinMode(COORDOUT,OUTPUT);
-  digitalWrite(COORDOUT,LOW);
   Serial.begin(9600);
-  myDriver.init('s');
-  pinMode(LED_BUILTIN, OUTPUT);
 }
 void loop() {
   // put your main code here, to run repeatedly:
   
   while(Serial.available()){
     rec = Serial.read();
-    //if(rec=='m' || rec=='s')
-    //{
-    //  myDriver.init(rec);
-    //}
     if(rec=='x')
     {
       myDriver.handleComm(stuff_right);
