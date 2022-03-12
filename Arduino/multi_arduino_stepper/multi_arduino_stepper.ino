@@ -1,6 +1,7 @@
 //Globals
-#define STEPPIN  8
-#define DIRPIN   7
+#define STEPPIN 8
+#define DIRPIN  7
+#define SWITCH  6
 #define CW 0
 #define CCW 1
 //good frequency for small motor is 10000
