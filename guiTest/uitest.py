@@ -13,7 +13,7 @@ class UI(QtWidgets.QMainWindow, Console):
         self.setup(self)
         # self.command.clicked.connect(self.send_cmd)
         # self.calibrate.clicked.connect(self.connect())
-        self.points_list = [] 
+        self.points_list = []
         self.angleSlots = [self.joint_1_box, self.joint_2_box, self.joint_3_box, self.joint_4_box,]
         self.diffSlots = [self.delta_1, self.delta_2, self.delta_3, self.delta_4]
         self.kooka = kookabot()
@@ -37,6 +37,7 @@ class UI(QtWidgets.QMainWindow, Console):
         self.vis.showAngle(self.diffSlots, self.kooka.diff())
         self.vis.draw()
         self.stir.clicked.connect(self.stirring)
+        self.calibrate.clicked.connect(self.calibr)
 
     def connecting(self):
         if(self.fullyConencted == False):
@@ -94,6 +95,28 @@ class UI(QtWidgets.QMainWindow, Console):
     def stirring(self):
         while(True):
             print("asd")
+
+    def calibr(self):
+        self.USB1.ser.write("c")
+        retVal = self.USB1.ser.read()
+        if(retVal == "d"):
+            self.terminal.append("Joint 1 is calibrated.")
+        else:
+            self.terminal.append("Joint 1 calibration failed.")
+        self.USB2.ser.write("c")
+        retVal = self.USB2.ser.read()
+        if(retVal == "d"):
+            self.terminal.append("Joint 2 is calibrated.")
+        else:
+            self.terminal.append("Joint 2 calibration failed.")
+        self.USB3.ser.write("c")
+        retVal = self.USB3.ser.read()
+        if(retVal == "d"):
+            self.terminal.append("Joint 3 is calibrated.")
+        else:
+            self.terminal.append("Joint 3 calibration failed.")
+        return True
+
 
 
     ''' An example of drawing a straight line
