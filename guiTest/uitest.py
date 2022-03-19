@@ -82,10 +82,10 @@ class UI(QtWidgets.QMainWindow, Console):
         self.vis.updateCurrentPos()
         self.vis.draw()
         if(self.fullyConencted == True):
-            self.USB1.send(self.kooka.deltaThetas[0]*180/math.pi, 'w')
+            self.USB1.send(self.kooka.deltaThetas[0]*180/math.pi, 'x')
             self.USB2.send(self.kooka.deltaThetas[1]*180/math.pi, 'x')
-            self.USB3.send(self.kooka.deltaThetas[2]*180/math.pi, 'y')
-            self.USB4.send(self.kooka.deltaThetas[3]*180/math.pi, 'z')
+            self.USB3.send(self.kooka.deltaThetas[2]*180/math.pi, 'x')
+            self.USB4.send(self.kooka.deltaThetas[3]*180/math.pi, 'x')
 
         self.kooka.deltaThetas = self.kooka.diff()
         self.vis.showAngle(self.diffSlots, self.kooka.deltaThetas)

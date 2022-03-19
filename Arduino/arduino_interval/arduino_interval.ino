@@ -5,6 +5,7 @@
 #define SWITCH  6 //
 #define CW 0
 #define CCW 1
+#define INTERVAL 20
 //good frequency for small motor is 10000
 //good frequency for big motor is 5000
 class Driver {
@@ -12,11 +13,7 @@ public:
   int frequency;
   int STEPTIME;
   char mode;
-  Driver()
-  {
-    this->frequency = 5000;
-    setFrequency(this->frequency);
-  }
+  Driver() {}
   ~Driver() {}
   void setDirection(int dir)
   {
@@ -30,10 +27,19 @@ public:
     }
     delayMicroseconds(5);
   }
-  void setFrequency(int freq)
+  void setFrequency(int steps)
   {
-    this->frequency = freq;
-    this->STEPTIME = 1000000/freq;
+    this->STEPTIME = 1000*INTERVAL/steps;
+    this->frequency = 1000000/STEPTIME;
+  }
+  void drive(int steps)
+  {
+    for(int i = 0; i < steps; i++) {
+      digitalWrite(STEPPIN,HIGH);
+      delayMicroseconds(3);
+      digitalWrite(STEPPIN,LOW);
+      delayMicroseconds(STEPTIME);
+    }
   }
   int calibrate()
   {
@@ -57,16 +63,8 @@ public:
     {
       setDirection(CCW);
     }
+    setFrequency(abs(steps));
     drive(abs(steps));
-  }
-  void drive(int steps)
-  {
-    for(int i = 0; i < steps; i++) {
-      digitalWrite(STEPPIN,HIGH);
-      delayMicroseconds(3);
-      digitalWrite(STEPPIN,LOW);
-      delayMicroseconds(STEPTIME);
-    }
   }
 };
 Driver myDriver;
@@ -80,7 +78,7 @@ void setup() {
   // put your setup code here, to run once:
   pinMode(STEPPIN,OUTPUT);
   pinMode(DIRPIN,OUTPUT);
-  Serial.begin(9600);
+  Serial.begin(115200);
   limitSwitch.setDebounceTime(50);
 }
 void loop() {
