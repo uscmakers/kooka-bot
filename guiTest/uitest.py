@@ -97,19 +97,20 @@ class UI(QtWidgets.QMainWindow, Console):
             print("asd")
 
     def calibr(self):
-        self.USB1.ser.write("c")
+        message = "c"
+        self.USB1.ser.write(message.encode())
         retVal = self.USB1.ser.read()
         if(retVal == "d"):
             self.terminal.append("Joint 1 is calibrated.")
         else:
             self.terminal.append("Joint 1 calibration failed.")
-        self.USB2.ser.write("c")
+        self.USB2.ser.write(message.encode())
         retVal = self.USB2.ser.read()
         if(retVal == "d"):
             self.terminal.append("Joint 2 is calibrated.")
         else:
             self.terminal.append("Joint 2 calibration failed.")
-        self.USB3.ser.write("c")
+        self.USB3.ser.write(message.encode())
         retVal = self.USB3.ser.read()
         if(retVal == "d"):
             self.terminal.append("Joint 3 is calibrated.")
