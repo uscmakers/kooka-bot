@@ -157,3 +157,10 @@ class Console(object):
         self.usb_4.move(200, 440)
         self.usb_4_slot = QtWidgets.QLineEdit(self)
         self.usb_4_slot.move(200+60,440)
+
+        # time intervial
+        self.dt = QtWidgets.QLabel('Vel (deg/sec) :' , self)
+        self.dt.move(410,450)
+        self.dt_slot = QtWidgets.QLineEdit(self)
+        self.dt_slot.move(510,450)
+        self.dt_slot.setFixedWidth(55)

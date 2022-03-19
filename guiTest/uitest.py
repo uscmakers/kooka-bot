@@ -6,6 +6,7 @@ from vis import visualizer
 from kookatest import kookabot
 import math
 from comm import comm
+import time
 
 class UI(QtWidgets.QMainWindow, Console):
     def __init__(self):
@@ -82,15 +83,19 @@ class UI(QtWidgets.QMainWindow, Console):
         self.vis.updateCurrentPos()
         self.vis.draw()
         if(self.fullyConencted == True):
-            self.USB1.send(self.kooka.deltaThetas[0]*180/math.pi, 'w')
-            self.USB2.send(self.kooka.deltaThetas[1]*180/math.pi, 'x')
-            self.USB3.send(self.kooka.deltaThetas[2]*180/math.pi, 'y')
-            self.USB4.send(self.kooka.deltaThetas[3]*180/math.pi, 'z')
+            vel = self.dt_slot.text()
+            maxAngle = max(abs(self.kooka.deltaThetas))
+            n = 50*maxAngle/vel
+            deltaThetaInterval = self.kooka.deltaThetas/n
+            for i in range(n):
+                self.USB1.send(deltaThetaInterval[0]*180/math.pi, 'x')
+                self.USB2.send(deltaThetaInterval[1]*180/math.pi, 'x')
+                self.USB3.send(deltaThetaInterval[2]*180/math.pi, 'x')
+                self.USB4.send(deltaThetaInterval[3]*180/math.pi, 'x')
+                time.sleep(0.02)
 
         self.kooka.deltaThetas = self.kooka.diff()
         self.vis.showAngle(self.diffSlots, self.kooka.deltaThetas)
-
-    # def calibrate(self):
 
     def stirring(self):
         while(True):
