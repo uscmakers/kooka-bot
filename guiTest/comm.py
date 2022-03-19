@@ -1,7 +1,7 @@
 import serial
 
 class comm:
-    def __init__(self, name, baud=115200):
+    def __init__(self, name, baud=9600):
         self.baud = baud
         self.usb = ''
         self.ser = ''
