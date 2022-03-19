@@ -18,9 +18,10 @@ class UI(QtWidgets.QMainWindow, Console):
             joint_3_delta = float(self.joint_2.text())-float(self.joint_2_ang)
         except:
             self.terminal.append("Joint 3 command value is invaild.")
-        if(self.joint_1.text().isdigit() and self.joint_2.text().isdigit() and self.joint_3.text().isdigit()):
+        if(self.joint_1.text().replace("-","").isdigit() and self.joint_2.text().replace("-","").isdigit() and self.joint_3.text().replace("-","").isdigit()):
             try:
                 cmd1 = str(self.joint_1.text())+"x"
+                print(cmd1)
                 self.ser1.write(cmd1.encode())
             except:
                 self.terminal.append("Connection with the robot x doesn’t exist.")

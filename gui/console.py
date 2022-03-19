@@ -9,7 +9,7 @@ class Console(object):
         super(Console, self).__init__()
         self.setGeometry(250, 330, 900, 350)
         self.setWindowTitle("Kooka")
-        self.usb1 = 'COM23'
+        self.usb1 = 'COM13'
         self.usb2 = 'COM20'
         self.usb3 = 'COM21'
         self.ser1 = ''
