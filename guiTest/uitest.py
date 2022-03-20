@@ -6,6 +6,7 @@ from vis import visualizer
 from kookatest import kookabot
 import math
 from comm import comm
+import serial
 import time
 
 class UI(QtWidgets.QMainWindow, Console):
@@ -42,16 +43,16 @@ class UI(QtWidgets.QMainWindow, Console):
 
     def connecting(self):
         if(self.fullyConencted == False):
-            self.USB1.connection(self.usb_1_slot.text(), self.terminal)
-            self.USB2.connection(self.usb_2_slot.text(), self.terminal)
-            self.USB3.connection(self.usb_3_slot.text(), self.terminal)
-            self.USB4.connection(self.usb_4_slot.text(), self.terminal)
+            self.USB1.connection(self.usb_1_slot.text())
+            self.USB2.connection(self.usb_2_slot.text())
+            self.USB3.connection(self.usb_3_slot.text())
+            #self.USB4.connection(self.usb_4_slot.text(), self.terminal)
 
-            if(self.USB1.connected == False or self.USB2.connected == False or self.USB3.connected == False or self.USB4.connected == False):
+            if(self.USB1.connected == False or self.USB2.connected == False or self.USB3.connected == False):
                 self.terminal.append('Connection failed.')
                 self.terminal.append('')
 
-            elif(self.USB1.connected == True and self.USB2.connected == True and self.USB3.connected == True and self.USB4.connected == True):
+            elif(self.USB1.connected == True and self.USB2.connected == True and self.USB3.connected == True):
                 self.terminal.append('Connection succeed!')
                 self.fullyConencted = True
                 self.connec.setText("Disconnect")
@@ -84,18 +85,44 @@ class UI(QtWidgets.QMainWindow, Console):
         self.vis.draw()
         if(self.fullyConencted == True):
             vel = self.dt_slot.text()
+            self.kooka.deltaThetas = 180/math.pi*self.kooka.deltaThetas
             maxAngle = max(abs(self.kooka.deltaThetas))
-            n = 50*maxAngle/vel
+            n = 50*maxAngle/float(vel)
             deltaThetaInterval = self.kooka.deltaThetas/n
-            for i in range(n):
-                self.USB1.send(deltaThetaInterval[0]*180/math.pi, 'x')
-                self.USB2.send(deltaThetaInterval[1]*180/math.pi, 'x')
-                self.USB3.send(deltaThetaInterval[2]*180/math.pi, 'x')
-                self.USB4.send(deltaThetaInterval[3]*180/math.pi, 'x')
+            deltaThetaInterval[0] = -3*deltaThetaInterval[0]
+            deltaThetaInterval[1] = -deltaThetaInterval[1]
+            start = time.time()
+
+####### acceleration version
+            n_a = 10
+            n = n - n_a
+
+            #accelerating loop
+            for i in range(n_a):
+                self.USB1.send(deltaThetaInterval[0]*i/n_a, 'x')
+                self.USB2.send(deltaThetaInterval[1]*i/n_a, 'x')
+                self.USB3.send(deltaThetaInterval[2]*i/n_a, 'x')
+                #self.USB4.send(deltaThetaInterval[3]*180/math.pi, 'x')
+                time.sleep(0.02)
+            #const speed loop
+            for i in range(int(n)):
+                self.USB1.send(deltaThetaInterval[0], 'x')
+                self.USB2.send(deltaThetaInterval[1], 'x')
+                self.USB3.send(deltaThetaInterval[2], 'x')
+                #self.USB4.send(deltaThetaInterval[3]*180/math.pi, 'x')
+                time.sleep(0.02)
+            for i in range(n_a):
+                self.USB1.send(deltaThetaInterval[0]*(1-(i+1)/n_a), 'x')
+                self.USB2.send(deltaThetaInterval[1]*(1-i/n_a), 'x')
+                self.USB3.send(deltaThetaInterval[2]*(1-i/n_a), 'x')
+                #self.USB4.send(deltaThetaInterval[3]*180/math.pi, 'x')
                 time.sleep(0.02)
 
+#######
         self.kooka.deltaThetas = self.kooka.diff()
         self.vis.showAngle(self.diffSlots, self.kooka.deltaThetas)
+
+    # def calibrate(self):
 
     def stirring(self):
         while(True):
@@ -109,19 +136,20 @@ class UI(QtWidgets.QMainWindow, Console):
             self.terminal.append("Joint 1 is calibrated.")
         else:
             self.terminal.append("Joint 1 calibration failed.")
-        self.USB2.ser.write(message.encode())
-        retVal = self.USB2.ser.read()
-        if(retVal == "d"):
-            self.terminal.append("Joint 2 is calibrated.")
-        else:
-            self.terminal.append("Joint 2 calibration failed.")
-        self.USB3.ser.write(message.encode())
-        retVal = self.USB3.ser.read()
-        if(retVal == "d"):
-            self.terminal.append("Joint 3 is calibrated.")
-        else:
-            self.terminal.append("Joint 3 calibration failed.")
-        return True
+        
+        #self.USB2.ser.write(message.encode())
+        #retVal = self.USB2.ser.read()
+        #if(retVal == "d"):
+        #    self.terminal.append("Joint 2 is calibrated.")
+        #else:
+        #    self.terminal.append("Joint 2 calibration failed.")
+        #self.USB3.ser.write(message.encode())
+        #retVal = self.USB3.ser.read()
+        #if(retVal == "d"):
+        #    self.terminal.append("Joint 3 is calibrated.")
+        #else:
+        #    self.terminal.append("Joint 3 calibration failed.")
+        #return True
 
 
 

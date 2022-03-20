@@ -8,7 +8,7 @@ import time
 
 # lengths of joints in yaw, shoulder, elbow, wrist
 LINK_LEN = [0.03, 0.15, 0.1, 0.1]
-INIT_ANG = [math.pi/4, math.pi/2, -math.pi/3]
+INIT_ANG = [0, math.pi/2, -math.pi/2]
 
 class kookabot:
     # initialize parameters and joint angles + positions

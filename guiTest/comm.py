@@ -12,10 +12,7 @@ class comm:
         cmd = str(command)+str(key)
         self.ser.write(cmd.encode())
 
-    def connection(self, usbport, term):
-        try:
-            ser = serial.Serial(usbport, self.baud)
-            self.usb = usbport
-            self.connected = True
-        except:
-            term.append(self.usb+" does not exist in "+self.name+".")
+    def connection(self, usbport):
+        self.ser = serial.Serial(usbport, self.baud)
+        self.usb = usbport
+        self.connected = True
