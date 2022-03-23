@@ -154,9 +154,37 @@ class UI(QtWidgets.QMainWindow, Console):
         angDiff = np.empty([120, 3])
         for i in range(119):
             angDiff[i] = goalAngs[i+1] - goalAngs[i]
+            vel = self.dt_slot.text()
+            maxAngle = max(abs(angDiff[i]))
             
+            angDiff[i]/=n
+
         angDiff[:,0]*=-3
         angDiff[:,1]*=-1
+
+        n = 50*maxAngle/float(vel)
+
+        n_a = 10
+        n = n - n_a
+
+        for i in range(3):
+            for j in range(n_a):
+                self.USB1.send(angDiff[i,0]*i/n_a, 'x')
+                self.USB2.send(angDiff[i,1]*i/n_a, 'x')
+                self.USB3.send(angDiff[i,2]*i/n_a, 'x')
+                time.sleep(0.02)
+
+            for j in range(int(n)):
+                self.USB1.send(angDiff[i,0], 'x')
+                self.USB2.send(angDiff[i,1], 'x')
+                self.USB3.send(angDiff[i,2], 'x')
+                time.sleep(0.02)
+
+            for j in range(n_a):
+                self.USB1.send(angDiff[i,0]*(1-(i+1)/n_a), 'x')
+                self.USB2.send(angDiff[i,1]*(1-i/n_a), 'x')
+                self.USB3.send(angDiff[i,2]*(1-i/n_a), 'x')
+                time.sleep(0.02)
 
     def calibr(self):
         message = "c"
