@@ -167,13 +167,13 @@ class UI(QtWidgets.QMainWindow, Console):
         n_a = 10
         n = n - n_a
 
-        for i in range(3):
+        for i in range(n_a):
             for j in range(n_a):
                 self.USB1.send(angDiff[i,0]*i/n_a, 'x')
                 self.USB2.send(angDiff[i,1]*i/n_a, 'x')
                 self.USB3.send(angDiff[i,2]*i/n_a, 'x')
                 time.sleep(0.02)
-
+        for i in range(100):
             for j in range(int(n)):
                 self.USB1.send(angDiff[i,0], 'x')
                 self.USB2.send(angDiff[i,1], 'x')
