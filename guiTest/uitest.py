@@ -125,8 +125,33 @@ class UI(QtWidgets.QMainWindow, Console):
     # def calibrate(self):
 
     def stirring(self):
-        while(True):
-            print("asd")
+        # get to the goal position first
+        goal = [0.1, 0, 0.1]
+        goal2 = [0.1, 0.1, 0.15]
+        angles = self.kooka.ik(goal)
+        self.kooka.joint_ang_new = np.array([angles[0], angles[1], angles[2], angles[3]])
+        self.vis.updateCurrentPos()
+        self.vis.draw()
+
+        # create stirring trajectories
+        self.kooka.stir()
+
+        tra = np.empty([360, 3])
+        for i in range(360):
+            xx = np.array([self.kooka.x_stir[i], self.kooka.y_stir[i], self.kooka.z_stir[i]])
+            tra[i] = xx
+
+        self.vis.showTraejc(tra)
+
+        for i in range(300):
+            newgoal = tra[i]
+            goaal = [newgoal[0], newgoal[1], newgoal[2]]
+            angles = self.kooka.ik(goaal)
+            self.kooka.joint_ang_new = np.array([angles[0], angles[1], angles[2], angles[3]])
+            self.vis.updateCurrentPos()
+            self.vis.draw()
+            print(angles)
+            time.sleep(0.01)
 
     def calibr(self):
         message = "c"

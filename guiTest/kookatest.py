@@ -20,9 +20,9 @@ class kookabot:
         self.x, self.y, self.z = self.fk(self.joint_ang_new) # use forward kinematics to initialize the positions
         self.deltaThetas = self.diff()
         # coocking trajectories
-        self.x_stir = np.zeros(31)      
-        self.y_stir = np.zeros(31)
-        self.z_stir = np.zeros(31)
+        self.x_stir = np.zeros(360)
+        self.y_stir = np.zeros(360)
+        self.z_stir = np.zeros(360)
 
     # initialize the joint angles
     def joint_init(self, INIT_ANG):
@@ -109,14 +109,14 @@ class kookabot:
         print()
 
     # create stirring trajectories
-    def stir(self):                
+    def stir(self):
         center_x = self.x[2]-0.02
         center_y = self.y[2]
         center_z = self.z[2]
 
-        for i in range(31):
-            self.x_stir[i] = center_x + 0.02*math.cos(2*math.pi*i/30)
-            self.y_stir[i] = center_y + 0.02*math.sin(2*math.pi*i/30)
+        for i in range(360):
+            self.x_stir[i] = center_x + 0.02*math.cos(2*math.pi*i/360)
+            self.y_stir[i] = center_y + 0.02*math.sin(2*math.pi*i/360)
             self.z_stir[i] = center_z
 
     def diff(self):

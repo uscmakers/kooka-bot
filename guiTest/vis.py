@@ -8,8 +8,8 @@ class visualizer:
         self.robot = robot
         self.pose = self.assign_pos()
         self.graph = graph
-        self.new_pos = gl.GLLinePlotItem(pos = self.pose, width = 1, color=(1, 0, 0, 1), antialias = True) 
-        self.current_pos = gl.GLLinePlotItem(pos = self.pose, width = 1, color=(1, 1, 0, 1), antialias = True) 
+        self.new_pos = gl.GLLinePlotItem(pos = self.pose, width = 1, color=(1, 0, 0, 1), antialias = True)
+        self.current_pos = gl.GLLinePlotItem(pos = self.pose, width = 1, color=(1, 1, 0, 1), antialias = True)
         self.graph.addItem(self.new_pos)
         self.graph.addItem(self.current_pos)
 
@@ -32,7 +32,7 @@ class visualizer:
         self.robot.cmd(self.robot.joint_ang_new)
         self.graph.items.remove(self.new_pos)
         self.pose = self.assign_pos()
-        self.new_pos = gl.GLLinePlotItem(pos = self.pose, width = 1,color=(1, 0, 0, 1), antialias = True) 
+        self.new_pos = gl.GLLinePlotItem(pos = self.pose, width = 1,color=(1, 0, 0, 1), antialias = True)
         self.graph.addItem(self.new_pos)
 
     def showAngle(self, slots, angles):
@@ -40,3 +40,7 @@ class visualizer:
         slots[1].setText(str(format(angles[1]*180.0/math.pi, ".1f")))
         slots[2].setText(str(format(angles[2]*180.0/math.pi, ".1f")))
         slots[3].setText(str(format(angles[3]*180.0/math.pi, ".1f")))
+
+    def showTraejc(self, traje):
+        trajectories = gl.GLLinePlotItem(pos = traje, width = 1, color=(1, 0, 1, 1), antialias = True)
+        self.graph.addItem(trajectories)
