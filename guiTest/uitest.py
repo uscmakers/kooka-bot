@@ -136,22 +136,27 @@ class UI(QtWidgets.QMainWindow, Console):
         # create stirring trajectories
         self.kooka.stir()
 
-        tra = np.empty([360, 3])
-        for i in range(360):
+        tra = np.empty([120, 3])
+        for i in range(120):
             xx = np.array([self.kooka.x_stir[i], self.kooka.y_stir[i], self.kooka.z_stir[i]])
             tra[i] = xx
 
         self.vis.showTraejc(tra)
-
-        for i in range(300):
+        goalAngs = np.empty([120, 3])
+        for i in range(120):
             newgoal = tra[i]
             goaal = [newgoal[0], newgoal[1], newgoal[2]]
             angles = self.kooka.ik(goaal)
-            self.kooka.joint_ang_new = np.array([angles[0], angles[1], angles[2], angles[3]])
+            angss = np.array([angles[0], angles[1], angles[2]])
+            goalAngs[i] = angss*180/math.pi
             self.vis.updateCurrentPos()
             self.vis.draw()
-            print(angles)
-            time.sleep(0.01)
+        angDiff = np.empty([120, 3])
+        for i in range(119):
+            angDiff[i] = goalAngs[i+1] - goalAngs[i]
+            
+        angDiff[:,0]*=-3
+        angDiff[:,1]*=-1
 
     def calibr(self):
         message = "c"
