@@ -79,19 +79,30 @@ class UI(QtWidgets.QMainWindow, Console):
         self.kooka.deltaThetas = self.kooka.diff()
         self.vis.showAngle(self.diffSlots, self.kooka.deltaThetas)
 
+    def maxAng(self, angs):
+        vel = self.dt_slot.text()
+        maxangl = max(abs(angs))
+        n = 50*maxangl/float(vel)
+
+        return n
+
+    def rad2deg(self,angs):
+
+        return angs*180/math.pi
+
+    def intermediate(self, angs, n):
+        angs = angs/n
+        angs[0] = -3*angs[0]
+        angs[1] = -angs[1]
+
     def send_cmd(self):
         self.kooka.currenAngUpdate()
         self.vis.updateCurrentPos()
         self.vis.draw()
         if(self.fullyConencted == True):
-            vel = self.dt_slot.text()
-            self.kooka.deltaThetas = 180/math.pi*self.kooka.deltaThetas
-            maxAngle = max(abs(self.kooka.deltaThetas))
-            n = 50*maxAngle/float(vel)
-            deltaThetaInterval = self.kooka.deltaThetas/n
-            deltaThetaInterval[0] = -3*deltaThetaInterval[0]
-            deltaThetaInterval[1] = -deltaThetaInterval[1]
-            start = time.time()
+            self.kooka.deltaThetas = self.rad2deg(self.kooka.deltaThetas)
+            n = maxAng(self.kooka.deltaThetas)
+            self.intermediate(self.kooka.deltaThetas, n)
 
 ####### acceleration version
             n_a = 10
@@ -126,14 +137,79 @@ class UI(QtWidgets.QMainWindow, Console):
 
     def stirring(self):
         # get to the goal position first
-        goal = [0.1, 0, 0.1]
+        goal = [0.4, 0.4, 0.4]
         goal2 = [0.1, 0.1, 0.15]
         angles = self.kooka.ik(goal)
         self.kooka.joint_ang_new = np.array([angles[0], angles[1], angles[2], angles[3]])
+        print(self.kooka.diff())
         self.vis.updateCurrentPos()
         self.vis.draw()
 
+        if(self.fullyConencted == True):
+            self.kooka.deltaThetas = self.rad2deg(self.kooka.deltaThetas)
+            n = maxAng(self.kooka.deltaThetas)
+            self.intermediate(self.kooka.deltaThetas, n)
+
+####### acceleration version
+            n_a = 10
+            n = n - n_a
+
+            #accelerating loop
+            for i in range(n_a):
+                self.USB1.send(deltaThetaInterval[0]*i/n_a, 'x')
+                self.USB2.send(deltaThetaInterval[1]*i/n_a, 'x')
+                self.USB3.send(deltaThetaInterval[2]*i/n_a, 'x')
+                #self.USB4.send(deltaThetaInterval[3]*180/math.pi, 'x')
+                time.sleep(0.02)
+            #const speed loop
+            for i in range(int(n)):
+                self.USB1.send(deltaThetaInterval[0], 'x')
+                self.USB2.send(deltaThetaInterval[1], 'x')
+                self.USB3.send(deltaThetaInterval[2], 'x')
+                #self.USB4.send(deltaThetaInterval[3]*180/math.pi, 'x')
+                time.sleep(0.02)
+            for i in range(n_a):
+                self.USB1.send(deltaThetaInterval[0]*(1-(i+1)/n_a), 'x')
+                self.USB2.send(deltaThetaInterval[1]*(1-i/n_a), 'x')
+                self.USB3.send(deltaThetaInterval[2]*(1-i/n_a), 'x')
+                #self.USB4.send(deltaThetaInterval[3]*180/math.pi, 'x')
+                time.sleep(0.02)
+
+        '''
+        if(self.fullyConencted == True):
+            self.kooka.deltaThetas = self.rad2deg(self.kooka.deltaThetas)
+            n = maxAng(self.kooka.deltaThetas)
+            self.intermediate(self.kooka.deltaThetas, n)
+
+####### acceleration version
+            n_a = 10
+            n = n - n_a
+
+            #accelerating loop
+            for i in range(n_a):
+                self.USB1.send(deltaThetaInterval[0]*i/n_a, 'x')
+                self.USB2.send(deltaThetaInterval[1]*i/n_a, 'x')
+                self.USB3.send(deltaThetaInterval[2]*i/n_a, 'x')
+                #self.USB4.send(deltaThetaInterval[3]*180/math.pi, 'x')
+                time.sleep(0.02)
+            #const speed loop
+            for i in range(int(n)):
+                self.USB1.send(deltaThetaInterval[0], 'x')
+                self.USB2.send(deltaThetaInterval[1], 'x')
+                self.USB3.send(deltaThetaInterval[2], 'x')
+                #self.USB4.send(deltaThetaInterval[3]*180/math.pi, 'x')
+                time.sleep(0.02)
+            for i in range(n_a):
+                self.USB1.send(deltaThetaInterval[0]*(1-(i+1)/n_a), 'x')
+                self.USB2.send(deltaThetaInterval[1]*(1-i/n_a), 'x')
+                self.USB3.send(deltaThetaInterval[2]*(1-i/n_a), 'x')
+                #self.USB4.send(deltaThetaInterval[3]*180/math.pi, 'x')
+                time.sleep(0.02)
+
+
         # create stirring trajectories
+
+        
         self.kooka.stir()
 
         tra = np.empty([120, 3])
@@ -185,6 +261,7 @@ class UI(QtWidgets.QMainWindow, Console):
                 self.USB2.send(angDiff[i,1]*(1-i/n_a), 'x')
                 self.USB3.send(angDiff[i,2]*(1-i/n_a), 'x')
                 time.sleep(0.02)
+    '''
 
     def calibr(self):
         message = "c"

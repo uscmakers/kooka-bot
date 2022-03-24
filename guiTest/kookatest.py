@@ -1,6 +1,5 @@
 import math
 import numpy as np
-import matplotlib.pyplot as plt
 import random
 from DH import DH
 from sympy import sin, cos, symbols, lambdify
