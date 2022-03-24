@@ -132,65 +132,44 @@ class UI(QtWidgets.QMainWindow, Console):
     # def calibrate(self):
 
     def stirring(self):
-        # get to the goal position first
-        goal = [0.3, 0, 0.48]
+        goal = [0.4, 0.4, 0.4]
         goal2 = [0.1, 0.1, 0.15]
         angles = self.kooka.ik(goal)
         self.kooka.joint_ang_new = np.array([angles[0], angles[1], angles[2], angles[3]])
-        self.vis.updateCurrentPos()
-        self.vis.draw()
 
-        # create stirring trajectories
-        self.kooka.stir()
-
-        tra = np.empty([120, 3])
-        for i in range(120):
-            xx = np.array([self.kooka.x_stir[i], self.kooka.y_stir[i], self.kooka.z_stir[i]])
-            tra[i] = xx
-
-        self.vis.showTraejc(tra)
-        goalAngs = np.empty([120, 3])
-        for i in range(120):
-            newgoal = tra[i]
-            goaal = [newgoal[0], newgoal[1], newgoal[2]]
-            angles = self.kooka.ik(goaal)
-            angss = np.array([angles[0], angles[1], angles[2]])
-            goalAngs[i] = angss*180/math.pi
-            self.vis.updateCurrentPos()
-            self.vis.draw()
-        angDiff = np.empty([120, 3])
-        for i in range(119):
-            angDiff[i] = goalAngs[i+1] - goalAngs[i]
+        if(self.fullyConencted == True):
             vel = self.dt_slot.text()
-            maxAngle = max(abs(angDiff[i]))
-            
-            angDiff[i]/=n
+            self.kooka.deltaThetas = 180/math.pi*self.kooka.diff()
+            maxAngle = max(abs(self.kooka.deltaThetas))
+            n = 50*maxAngle/float(vel)
+            deltaThetaInterval = self.kooka.deltaThetas/n
+            deltaThetaInterval[0] = -3*deltaThetaInterval[0]
+            deltaThetaInterval[1] = -deltaThetaInterval[1]
+            start = time.time()
 
-        angDiff[:,0]*=-3
-        angDiff[:,1]*=-1
+####### acceleration version
+            n_a = 10
+            n = n - n_a
 
-        n = 50*maxAngle/float(vel)
-
-        n_a = 10
-        n = n - n_a
-
-        for i in range(n_a):
-            for j in range(n_a):
-                self.USB1.send(angDiff[i,0]*i/n_a, 'x')
-                self.USB2.send(angDiff[i,1]*i/n_a, 'x')
-                self.USB3.send(angDiff[i,2]*i/n_a, 'x')
+            #accelerating loop
+            for i in range(n_a):
+                self.USB1.send(deltaThetaInterval[0]*i/n_a, 'x')
+                self.USB2.send(deltaThetaInterval[1]*i/n_a, 'x')
+                self.USB3.send(deltaThetaInterval[2]*i/n_a, 'x')
+                #self.USB4.send(deltaThetaInterval[3]*180/math.pi, 'x')
                 time.sleep(0.02)
-        for i in range(100):
-            for j in range(int(n)):
-                self.USB1.send(angDiff[i,0], 'x')
-                self.USB2.send(angDiff[i,1], 'x')
-                self.USB3.send(angDiff[i,2], 'x')
+            #const speed loop
+            for i in range(int(n)):
+                self.USB1.send(deltaThetaInterval[0], 'x')
+                self.USB2.send(deltaThetaInterval[1], 'x')
+                self.USB3.send(deltaThetaInterval[2], 'x')
+                #self.USB4.send(deltaThetaInterval[3]*180/math.pi, 'x')
                 time.sleep(0.02)
-
-            for j in range(n_a):
-                self.USB1.send(angDiff[i,0]*(1-(i+1)/n_a), 'x')
-                self.USB2.send(angDiff[i,1]*(1-i/n_a), 'x')
-                self.USB3.send(angDiff[i,2]*(1-i/n_a), 'x')
+            for i in range(n_a):
+                self.USB1.send(deltaThetaInterval[0]*(1-(i+1)/n_a), 'x')
+                self.USB2.send(deltaThetaInterval[1]*(1-i/n_a), 'x')
+                self.USB3.send(deltaThetaInterval[2]*(1-i/n_a), 'x')
+                #self.USB4.send(deltaThetaInterval[3]*180/math.pi, 'x')
                 time.sleep(0.02)
 
     def calibr(self):
