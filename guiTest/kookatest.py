@@ -29,7 +29,7 @@ class kookabot:
         joint_4 = -(math.pi/2+INIT_ANG[1]+INIT_ANG[2])
         ang_array = np.array([INIT_ANG[0], INIT_ANG[1], INIT_ANG[2], -math.pi/6])
 
-        return ang_array
+        return ang_array #16    22    20
 
     # fk equation initialization based on the link lengths
     def joint_pos(self):

@@ -101,9 +101,11 @@ class UI(QtWidgets.QMainWindow, Console):
         self.vis.draw()
         if(self.fullyConencted == True):
             self.kooka.deltaThetas = self.rad2deg(self.kooka.deltaThetas)
-            n = maxAng(self.kooka.deltaThetas)
-            self.intermediate(self.kooka.deltaThetas, n)
-
+            n = int(maxAng(self.kooka.deltaThetas))
+            deltaThetaInterval = self.kooka.deltaThetas
+            deltaThetaInterval[0] = -3*deltaThetaInterval[0]
+            deltaThetaInterval[1] = -1*deltaThetaInterval[1]
+            
 ####### acceleration version
             n_a = 10
             n = n - n_a
@@ -147,9 +149,10 @@ class UI(QtWidgets.QMainWindow, Console):
 
         if(self.fullyConencted == True):
             self.kooka.deltaThetas = self.rad2deg(self.kooka.deltaThetas)
-            n = maxAng(self.kooka.deltaThetas)
-            self.intermediate(self.kooka.deltaThetas, n)
-
+            n = self.maxAng(self.kooka.deltaThetas)
+            deltaThetaInterval = self.kooka.deltaThetas
+            deltaThetaInterval[0] = -3*deltaThetaInterval[0]
+            deltaThetaInterval[1] = -1*deltaThetaInterval[1]
 ####### acceleration version
             n_a = 10
             n = n - n_a
