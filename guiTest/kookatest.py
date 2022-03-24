@@ -1,12 +1,13 @@
 import math
 import numpy as np
+import matplotlib.pyplot as plt
 import random
 from DH import DH
 from sympy import sin, cos, symbols, lambdify
 import time
 
 # lengths of joints in yaw, shoulder, elbow, wrist
-LINK_LEN = [0.03, 0.15, 0.1, 0.1]
+LINK_LEN = [0.03, 0.45, 0.3, 0.1]
 INIT_ANG = [0, math.pi/2, -math.pi/2]
 
 class kookabot:
@@ -19,7 +20,7 @@ class kookabot:
         self.x, self.y, self.z = self.fk(self.joint_ang_new) # use forward kinematics to initialize the positions
         self.deltaThetas = self.diff()
         # coocking trajectories
-        self.x_stir = np.zeros(120)
+        self.x_stir = np.zeros(120)      
         self.y_stir = np.zeros(120)
         self.z_stir = np.zeros(120)
 
@@ -108,7 +109,7 @@ class kookabot:
         print()
 
     # create stirring trajectories
-    def stir(self):
+    def stir(self):                
         center_x = self.x[2]-0.02
         center_y = self.y[2]
         center_z = self.z[2]
@@ -131,3 +132,9 @@ class kookabot:
         ang4 = self.joint_ang_new[3]
 
         self.current_joint_ang = np.array([ang1, ang2, ang3, ang4])
+
+    def setAngNew(self, angs):
+        self.joint_ang_new = angs
+
+    def setAngCurrent(self, angs):
+        self.current_joint_ang = angs

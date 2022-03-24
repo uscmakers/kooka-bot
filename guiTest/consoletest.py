@@ -9,7 +9,7 @@ class Console(object):
         super(Console, self).__init__()
         self.setGeometry(250, 330, 900, 350)
         self.setFixedSize(900, 350)
-        self.setWindowTitle("Kooka Shit")
+        self.setWindowTitle("Kooka")
 
         # joint 1
         self.joint_1_label = QtWidgets.QLabel('Yaw :' , self)
@@ -44,8 +44,8 @@ class Console(object):
         self.joint_2_slider = QtWidgets.QSlider(self)
         self.joint_2_slider.setOrientation(QtCore.Qt.Horizontal)
         self.joint_2_slider.setGeometry(QtCore.QRect(145, 30+50, 160, 16))
-        self.joint_2_slider.setMinimum(0)
-        self.joint_2_slider.setMaximum(90)
+        self.joint_2_slider.setMinimum(45)
+        self.joint_2_slider.setMaximum(135)
         self.joint_2_slider.setObjectName('1')
 
         self.delta_2_label = QtWidgets.QLabel('Δθ :' , self)
@@ -124,7 +124,7 @@ class Console(object):
 
         # 3D visualization
         self.view=gl.GLViewWidget(self)
-        self.view.move(400,10)
+        self.view.move(550,10)
         self.view.setFixedWidth(460)
         self.view.setFixedHeight(430)
         self.gx = gl.GLGridItem()
@@ -136,21 +136,21 @@ class Console(object):
         # USB slots
         # USB 1
         self.usb_1 = QtWidgets.QLabel('USB 1 :' , self)
-        self.usb_1.move(20, 400)
+        self.usb_1.move(400, 20)
         self.usb_1_slot = QtWidgets.QLineEdit(self)
-        self.usb_1_slot.move(20+60,400)
+        self.usb_1_slot.move(448,20)
 
         # USB 2
         self.usb_2 = QtWidgets.QLabel('USB 2 :' , self)
-        self.usb_2.move(20, 440)
+        self.usb_2.move(400, 70)
         self.usb_2_slot = QtWidgets.QLineEdit(self)
-        self.usb_2_slot.move(20+60,440)
+        self.usb_2_slot.move(448,70)
 
         # USB 3
         self.usb_3 = QtWidgets.QLabel('USB 3 :' , self)
-        self.usb_3.move(200, 400)
+        self.usb_3.move(400, 120)
         self.usb_3_slot = QtWidgets.QLineEdit(self)
-        self.usb_3_slot.move(200+60,400)
+        self.usb_3_slot.move(448,120)
 
         # USB 4
         self.usb_4 = QtWidgets.QLabel('USB 4 :' , self)
