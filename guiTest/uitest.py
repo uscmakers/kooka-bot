@@ -40,6 +40,7 @@ class UI(QtWidgets.QMainWindow, Console):
         self.vis.draw()
         self.stir.clicked.connect(self.stirring)
         self.calibrate.clicked.connect(self.calibr)
+        self.i = 0
 
     def connecting(self):
         if(self.fullyConencted == False):
@@ -132,8 +133,13 @@ class UI(QtWidgets.QMainWindow, Console):
     # def calibrate(self):
 
     def stirring(self):
-        goal = [0.4, 0.4, 0.4]
-        goal2 = [0.1, 0.1, 0.15]
+        goal = []
+        if(self.i ==0):
+            goal = [0.4, 0.4, 0.4]
+            self.i = 1
+        elif(self.i == 1):
+            goal = [0.3, 0, 0.48]
+            self.i = 0
         angles = self.kooka.ik(goal)
         self.kooka.joint_ang_new = np.array([angles[0], angles[1], angles[2], angles[3]])
 
@@ -171,6 +177,8 @@ class UI(QtWidgets.QMainWindow, Console):
                 self.USB3.send(deltaThetaInterval[2]*(1-i/n_a), 'x')
                 #self.USB4.send(deltaThetaInterval[3]*180/math.pi, 'x')
                 time.sleep(0.02)
+        self.kooka.deltaThetas = self.kooka.diff()
+        self.vis.showAngle(self.diffSlots, self.kooka.deltaThetas)
 
     def calibr(self):
         message = "c"
