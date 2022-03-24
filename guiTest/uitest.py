@@ -41,6 +41,8 @@ class UI(QtWidgets.QMainWindow, Console):
         self.stir.clicked.connect(self.stirring)
         self.calibrate.clicked.connect(self.calibr)
         self.i = 0
+        self.goal = []
+        self.tra = np.empty([120, 3])
 
     def connecting(self):
         if(self.fullyConencted == False):
@@ -133,16 +135,46 @@ class UI(QtWidgets.QMainWindow, Console):
     # def calibrate(self):
 
     def stirring(self):
-        self.kooka.currenAngUpdate()
-        goal = []
         if(self.i ==0):
-            goal = [0.4, 0.4, 0.4]
-            self.i = 1
+            self.goal = [0.2, 0, 0.2]
+            self.i+=1
+            self.kooka.cmd(self.kooka.joint_ang_new)
+        
         elif(self.i == 1):
-            goal = [0.3, 0, 0.48]
+            self.kooka.stir()
+
+            
+            for i in range(120):
+                xx = np.array([self.kooka.x_stir[i], self.kooka.y_stir[i], self.kooka.z_stir[i]])
+                self.tra[i] = xx
+            self.vis.showTraejc(self.tra)
+            self.i+=1
+        else:
+            self.goal = self.tra[self.i-2]
+            self.i+=1
+            if(self.i == 119):
+                self.i = 2
+
+
+        '''
+        elif(self.i == 1):
+            goal = [0.3, 0.2, 0.2]
+            self.i = 2
+        elif(self.i == 2):
+            goal = [0.4, 0.1, 0.2]
+            self.i = 3
+        elif(self.i == 3):
+            goal = [0.3, 0, 0.2]
             self.i = 0
-        angles = self.kooka.ik(goal)
+        '''
+
+
+        angles = self.kooka.ik(self.goal)
         self.kooka.joint_ang_new = np.array([angles[0], angles[1], angles[2], angles[3]])
+        self.kooka.currenAngUpdate()
+        self.vis.updateCurrentPos()
+        self.vis.draw()
+        
 
         if(self.fullyConencted == True):
             vel = self.dt_slot.text()
@@ -178,8 +210,10 @@ class UI(QtWidgets.QMainWindow, Console):
                 self.USB3.send(deltaThetaInterval[2]*(1-i/n_a), 'x')
                 #self.USB4.send(deltaThetaInterval[3]*180/math.pi, 'x')
                 time.sleep(0.02)
+
         self.kooka.deltaThetas = self.kooka.diff()
         self.vis.showAngle(self.diffSlots, self.kooka.deltaThetas)
+        self.vis.draw()
 
     def calibr(self):
         message = "c"
@@ -211,7 +245,6 @@ class UI(QtWidgets.QMainWindow, Console):
         
         point1 = (0, 0, 0)  #specify the (x, y, z) values of the first point in a tuple
         point2 = (5, 6, 8)  #specify the (x, y, z) values of the second point in a tuple
-
         self.points_list.append(point1) #add the point1 tuple to the points_list
         self.points_list.append(point2) #add the point2 tuple to the points_list
         points_array = np.array(self.points_list) #convert the list to an array
