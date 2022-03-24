@@ -133,6 +133,7 @@ class UI(QtWidgets.QMainWindow, Console):
     # def calibrate(self):
 
     def stirring(self):
+        self.kooka.currenAngUpdate()
         goal = []
         if(self.i ==0):
             goal = [0.4, 0.4, 0.4]
