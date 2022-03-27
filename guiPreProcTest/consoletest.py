@@ -101,26 +101,24 @@ class Console(object):
 
         # message box
         self.terminal_label = QtWidgets.QLabel('Terminal', self)
-        self.terminal_label.move(20, 200)
+        self.terminal_label.move(20, 220)
         self.terminal = QtWidgets.QTextBrowser(self)
-        self.terminal.move(20,150+80)
-        self.terminal.setFixedWidth(200)
+        self.terminal.move(20,250)
+        self.terminal.setFixedWidth(300)
         self.terminal.setFixedHeight(150)
 
         # buttons
         self.connec = QtWidgets.QPushButton('Connect', self)
-        self.connec.move(260, 230)
+        self.connec.move(350, 250)
 
         self.calibrate = QtWidgets.QPushButton('Calibrate', self)
-        self.calibrate.move(260, 270)
+        self.calibrate.move(350, 290)
 
         self.command = QtWidgets.QPushButton('Command', self)
-        self.command.move(260, 310)
-
-        # self.command.clicked.connect(self.send_cmd)
+        self.command.move(350, 330)
 
         self.stir = QtWidgets.QPushButton('Stir', self)
-        self.stir.move(260, 350)
+        self.stir.move(350, 370)
 
         # 3D visualization
         self.view=gl.GLViewWidget(self)
@@ -154,9 +152,9 @@ class Console(object):
 
         # USB 4
         self.usb_4 = QtWidgets.QLabel('USB 4 :' , self)
-        self.usb_4.move(200, 440)
+        self.usb_4.move(400, 170)
         self.usb_4_slot = QtWidgets.QLineEdit(self)
-        self.usb_4_slot.move(200+60,440)
+        self.usb_4_slot.move(448,170)
 
         # time intervial
         self.dt = QtWidgets.QLabel('Vel (deg/sec) :' , self)
@@ -164,3 +162,9 @@ class Console(object):
         self.dt_slot = QtWidgets.QLineEdit(self)
         self.dt_slot.move(510,450)
         self.dt_slot.setFixedWidth(55)
+
+        self.rev = QtWidgets.QLabel('Revolutions: ',self)
+        self.rev.move(610,450)
+        self.rev_slot = QtWidgets.QLineEdit(self)
+        self.rev_slot.move(710,450)
+        self.rev_slot.setFixedWidth(55)

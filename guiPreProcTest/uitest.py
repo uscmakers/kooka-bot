@@ -40,7 +40,7 @@ class UI(QtWidgets.QMainWindow, Console):
         self.vis.draw()
         self.stir.clicked.connect(self.stirring)
         self.calibrate.clicked.connect(self.calibr)
-        self.goal
+        self.goal = []
         self.tra = np.empty([120, 3])
 
     def connecting(self):
@@ -88,9 +88,9 @@ class UI(QtWidgets.QMainWindow, Console):
 
         return n
 
-    def maxAngStir(self):
+    def maxAngStir(self,idx):
         vel = self.dt_slot.text
-        maxangl = np.sqrt(np.sum(np.square(self.kooka.deltaThetas[0])))
+        maxangl = np.sqrt(np.sum(np.square(self.kooka.deltaThetas[idx])))
         return 50*maxangl/float(vel)
 
     def send_cmd(self):
@@ -139,20 +139,19 @@ class UI(QtWidgets.QMainWindow, Console):
 
     def stirring(self):
 
-        points = 36
-        deltaThetaInterval = np.empty([points,3])
-        n = np.empty([points,3])
+        deltaThetaInterval = np.empty([self.kooka.points,3])
+        n = np.empty([self.kooka.points,3])
 
         self.goal = [0.2, 0, 0.2]
         self.kooka.cmd(self.kooka.joint_ang_new)
         self.kooka.stir()
 
-        for i in range(points):
+        for i in range(self.kooka.points):
             xx = np.array([self.kooka.x_stir[i], self.kooka.y_stir[i], self.kooka.z_stir[i]])
             self.tra[i] = xx
         self.vis.showTraejc(self.tra)
 
-        for i in range(points):
+        for i in range(self.kooka.points):
             self.goal = self.tra[i]
 
             angles = self.kooka.ik(self.goal)
@@ -162,9 +161,8 @@ class UI(QtWidgets.QMainWindow, Console):
             self.vis.draw()
 
             if(self.fullyConencted == True):
-                vel = self.dt_slot.text()
                 self.kooka.deltaThetas = 180/math.pi*self.kooka.diff()
-                n[i] = maxAngStir()
+                n[i] = self.maxAngStir(i)
                 deltaThetaInterval[i,:] = self.kooka.deltaThetas/n
                 deltaThetaInterval[i][0] = -3*deltaThetaInterval[0]
                 deltaThetaInterval[i][1] = -deltaThetaInterval[1]
@@ -172,29 +170,36 @@ class UI(QtWidgets.QMainWindow, Console):
 
 ####### acceleration version
 
-        for i in range(points):
-            n_a = 10
-            n[i] = n[i] - n_a
+        revolutions = int(self.rev_slot.text())
+        n_a = 10
+
+        for i in range(revolutions*self.kooka.points):
+            j = i%self.kooka.points
+            n_j = n[j]
             #accelerating loop
-            for i in range(n_a):
-                self.USB1.send(deltaThetaInterval[0]*i/n_a, 'x')
-                self.USB2.send(deltaThetaInterval[1]*i/n_a, 'x')
-                self.USB3.send(deltaThetaInterval[2]*i/n_a, 'x')
-                #self.USB4.send(deltaThetaInterval[3]*180/math.pi, 'x')
-                time.sleep(0.02)
+            if i == 0 or i == revolutions*self.kooka.points-1:
+                n_j = n_j - n_a/2
+            if i == 0:
+                for k in range(n_a):
+                    self.USB1.send(deltaThetaInterval[j][0]*k/n_a, 'x')
+                    self.USB2.send(deltaThetaInterval[j][1]*k/n_a, 'x')
+                    self.USB3.send(deltaThetaInterval[j][2]*k/n_a, 'x')
+                    #self.USB4.send(deltaThetaInterval[3]*180/math.pi, 'x')
+                    time.sleep(0.02)
             #const speed loop
-            for i in range(int(n)):
-                self.USB1.send(deltaThetaInterval[0], 'x')
-                self.USB2.send(deltaThetaInterval[1], 'x')
-                self.USB3.send(deltaThetaInterval[2], 'x')
+            for k in range(n_j):
+                self.USB1.send(deltaThetaInterval[j][0], 'x')
+                self.USB2.send(deltaThetaInterval[j][1], 'x')
+                self.USB3.send(deltaThetaInterval[j][2], 'x')
                 #self.USB4.send(deltaThetaInterval[3]*180/math.pi, 'x')
                 time.sleep(0.02)
-            for i in range(n_a):
-                self.USB1.send(deltaThetaInterval[0]*(1-(i+1)/n_a), 'x')
-                self.USB2.send(deltaThetaInterval[1]*(1-i/n_a), 'x')
-                self.USB3.send(deltaThetaInterval[2]*(1-i/n_a), 'x')
-                #self.USB4.send(deltaThetaInterval[3]*180/math.pi, 'x')
-                time.sleep(0.02)
+            if i == revolutions*self.kooka.points-1:
+                for k in range(n_a):
+                    self.USB1.send(deltaThetaInterval[j][0]*(1-(k+1)/n_a), 'x')
+                    self.USB2.send(deltaThetaInterval[j][1]*(1-k/n_a), 'x')
+                    self.USB3.send(deltaThetaInterval[j][2]*(1-k/n_a), 'x')
+                    #self.USB4.send(deltaThetaInterval[3]*180/math.pi, 'x')
+                    time.sleep(0.02)
 
         self.kooka.deltaThetas = self.kooka.diff()
         self.vis.showAngle(self.diffSlots, self.kooka.deltaThetas)
