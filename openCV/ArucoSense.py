@@ -1,51 +1,50 @@
-# open a camera stream that detects ArUco markers
-# and displays the id of the detected markers
-
+import cv2
+import cv2.aruco as aruco
+    
+    
 def main():
   import cv2
   import numpy as np
+  import cv2.aruco as aruco
   import time
-  import sys
-  
-  # create the marker dictionary
-  markerDictionary = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_6X6_250)
-  
-  # create the detector parameters
-  parameters = cv2.aruco.DetectorParameters_create()
-  
-  # create the camera stream
-  cap = cv2.VideoCapture(0)
-  
-  # set the camera resolution
-  cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
-  cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
-  
-  # loop until the camera stream is open
-  while not cap.isOpened():
-    print('failed to open camera')
-    time.sleep(1)
-    cap = cv2.VideoCapture(0)
-    
-  # loop until a key is pressed
+
+  cap = cv2.VideoCapture(1)
+  cap.set(4, 480)
+
+  # dictionary = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_4X4_50)
+  dictionary = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_ARUCO_ORIGINAL)
+  parameters = aruco.DetectorParameters_create()
+
   while True:
-    # read the camera frame
     ret, frame = cap.read()
+    if not ret:
+      break
+
+    # detect aruco markers
+    corners, ids, rejectedImgPoints = aruco.detectMarkers(frame, dictionary, parameters=parameters)
+
+    # draw markers
+    frame = aruco.drawDetectedMarkers(frame, corners, ids, (0, 255, 0))
+
+    # print id
+    if ids is not None:
+        # print(ids)
+        #   print()
+        x_sum = corners[0][0][0][0]+ corners[0][0][1][0]+ corners[0][0][2][0]+ corners[0][0][3][0]
+        y_sum = corners[0][0][0][1]+ corners[0][0][1][1]+ corners[0][0][2][1]+ corners[0][0][3][1]
+        
+        x_centerPixel = x_sum*.25
+        y_centerPixel = y_sum*.25
+        
+        print(str(x_centerPixel) + ", " + str(y_centerPixel))
     
-    # detect the markers
-    markers = cv2.aruco.detectMarkers(frame, markerDictionary, parameters=parameters)
-    
-    # if there are markers
-    if len(markers[0]) > 0:
-      # draw the detected markers
-      cv2.aruco.drawDetectedMarkers(frame, markers)
-    
-    # display the frame
-    cv2.imshow('frame', frame)
-    
-    # if the 'q' key is pressed
+
+    cv2.imshow("frame", frame)
     if cv2.waitKey(1) & 0xFF == ord('q'):
       break
-  
-  # release the camera stream
+
   cap.release()
   cv2.destroyAllWindows()
+
+if __name__ == '__main__':
+  main()
