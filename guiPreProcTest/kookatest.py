@@ -19,7 +19,7 @@ class kookabot:
         self.current_joint_ang = self.joint_init(INIT_ANG) # current joint angles
         self.x, self.y, self.z = self.fk(self.joint_ang_new) # use forward kinematics to initialize the positions
         self.deltaThetas = self.diff()
-        self.points = 120
+        self.points = 60
         # coocking trajectories
         self.x_stir = np.zeros(self.points)      
         self.y_stir = np.zeros(self.points)
@@ -119,12 +119,11 @@ class kookabot:
             self.x_stir[i] = center_x + 0.02*math.cos(2*math.pi*i/self.points)
             self.y_stir[i] = center_y + 0.02*math.sin(2*math.pi*i/self.points)
             self.z_stir[i] = center_z
+            
 
     def diff(self):
-        ang1 = self.joint_ang_new
-        ang2 = self.current_joint_ang
 
-        return ang1 - ang2
+        return self.joint_ang_new - self.current_joint_ang
 
     def currenAngUpdate(self):
         ang1 = self.joint_ang_new[0]

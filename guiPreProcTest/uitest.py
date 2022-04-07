@@ -41,14 +41,15 @@ class UI(QtWidgets.QMainWindow, Console):
         self.stir.clicked.connect(self.stirring)
         self.calibrate.clicked.connect(self.calibr)
         self.goal = []
-        self.tra = np.empty([120, 3])
+        self.points = 60
+        self.tra = np.empty([self.points, 3])
 
     def connecting(self):
         if(self.fullyConencted == False):
             self.USB1.connection(self.usb_1_slot.text())
             self.USB2.connection(self.usb_2_slot.text())
             self.USB3.connection(self.usb_3_slot.text())
-            #self.USB4.connection(self.usb_4_slot.text(), self.terminal)
+            self.USB4.connection(self.usb_4_slot.text(), self.terminal)
 
             if(self.USB1.connected == False or self.USB2.connected == False or self.USB3.connected == False):
                 self.terminal.append('Connection failed.')
@@ -86,12 +87,7 @@ class UI(QtWidgets.QMainWindow, Console):
         maxangl = max(abs(angs))
         n = 50*maxangl/float(vel)
 
-        return n
-
-    def maxAngStir(self,idx):
-        vel = self.dt_slot.text
-        maxangl = np.sqrt(np.sum(np.square(self.kooka.deltaThetas[idx])))
-        return 50*maxangl/float(vel)
+        return np.ceil(n)
 
     def send_cmd(self):
         self.kooka.currenAngUpdate()
@@ -99,8 +95,8 @@ class UI(QtWidgets.QMainWindow, Console):
         self.vis.draw()
         if(self.fullyConencted == True):
             vel = self.dt_slot.text()
-            self.kooka.deltaThetas = 180/math.pi*self.kooka.deltaThetasW
-            n = maxAng(self.kooka.deltaThetas)
+            self.kooka.deltaThetas = 180/math.pi*self.kooka.deltaThetas
+            n = self.maxAng(self.kooka.deltaThetas)
             deltaThetaInterval = self.kooka.deltaThetas/n
             deltaThetaInterval[0] = -3*deltaThetaInterval[0]
             deltaThetaInterval[1] = -deltaThetaInterval[1]
@@ -140,7 +136,7 @@ class UI(QtWidgets.QMainWindow, Console):
     def stirring(self):
 
         deltaThetaInterval = np.empty([self.kooka.points,3])
-        n = np.empty([self.kooka.points,3])
+        n = np.empty(self.kooka.points)
 
         self.goal = [0.2, 0, 0.2]
         self.kooka.cmd(self.kooka.joint_ang_new)
@@ -155,17 +151,18 @@ class UI(QtWidgets.QMainWindow, Console):
             self.goal = self.tra[i]
 
             angles = self.kooka.ik(self.goal)
-            self.kooka.joint_ang_new = np.array([angles[0], angles[1], angles[2], angles[3]])
             self.kooka.currenAngUpdate()
+            self.kooka.joint_ang_new = np.array([angles[0], angles[1], angles[2], angles[3]])
             self.vis.updateCurrentPos()
             self.vis.draw()
 
-            if(self.fullyConencted == True):
+            if(self.fullyConencted == True): 
                 self.kooka.deltaThetas = 180/math.pi*self.kooka.diff()
-                n[i] = self.maxAngStir(i)
-                deltaThetaInterval[i,:] = self.kooka.deltaThetas/n
-                deltaThetaInterval[i][0] = -3*deltaThetaInterval[0]
-                deltaThetaInterval[i][1] = -deltaThetaInterval[1]
+                n[i] = self.maxAng(self.kooka.deltaThetas)
+                print(n[i])
+                deltaThetaInterval[i][0] = -3*self.kooka.deltaThetas[0]/n[i]
+                deltaThetaInterval[i][1] = -1*self.kooka.deltaThetas[1]/n[i]
+                deltaThetaInterval[i][2] = self.kooka.deltaThetas[2]/n[i]
                 start = time.time()
 
 ####### acceleration version
@@ -187,7 +184,7 @@ class UI(QtWidgets.QMainWindow, Console):
                     #self.USB4.send(deltaThetaInterval[3]*180/math.pi, 'x')
                     time.sleep(0.02)
             #const speed loop
-            for k in range(n_j):
+            for k in range(int(n_j)):
                 self.USB1.send(deltaThetaInterval[j][0], 'x')
                 self.USB2.send(deltaThetaInterval[j][1], 'x')
                 self.USB3.send(deltaThetaInterval[j][2], 'x')
