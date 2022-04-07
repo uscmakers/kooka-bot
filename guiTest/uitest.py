@@ -9,6 +9,7 @@ from comm import comm
 import serial
 import time
 
+
 class UI(QtWidgets.QMainWindow, Console):
     def __init__(self):
         super().__init__()
@@ -16,8 +17,10 @@ class UI(QtWidgets.QMainWindow, Console):
         # self.command.clicked.connect(self.send_cmd)
         # self.calibrate.clicked.connect(self.connect())
         self.points_list = []
-        self.angleSlots = [self.joint_1_box, self.joint_2_box, self.joint_3_box, self.joint_4_box,]
-        self.diffSlots = [self.delta_1, self.delta_2, self.delta_3, self.delta_4]
+        self.angleSlots = [self.joint_1_box, self.joint_2_box,
+                           self.joint_3_box, self.joint_4_box, ]
+        self.diffSlots = [self.delta_1,
+                          self.delta_2, self.delta_3, self.delta_4]
         self.kooka = kookabot()
         self.vis = visualizer(self.kooka, self.view)
         self.joint_1_slider.setValue(180*self.kooka.joint_ang_new[0]/math.pi)
@@ -66,7 +69,6 @@ class UI(QtWidgets.QMainWindow, Console):
             self.terminal.append('Simulation mode on.')
             self.terminal.append('')
 
-
     def slide(self, value):
         widgetname = self.focusWidget().objectName()
 
@@ -74,7 +76,7 @@ class UI(QtWidgets.QMainWindow, Console):
             self.kooka.joint_ang_new[int(widgetname)] = -value*math.pi/180
         else:
             self.kooka.joint_ang_new[int(widgetname)] = value*math.pi/180
-        
+
         self.vis.draw()
         self.vis.showAngle(self.angleSlots, self.kooka.joint_ang_new)
         self.kooka.deltaThetas = self.kooka.diff()
@@ -101,18 +103,18 @@ class UI(QtWidgets.QMainWindow, Console):
             deltaThetaInterval[1] = -deltaThetaInterval[1]
             start = time.time()
 
-####### acceleration version
+# acceleration version
             n_a = 10
             n = n - n_a
 
-            #accelerating loop
+            # accelerating loop
             for i in range(n_a):
                 self.USB1.send(deltaThetaInterval[0]*i/n_a, 'x')
                 self.USB2.send(deltaThetaInterval[1]*i/n_a, 'x')
                 self.USB3.send(deltaThetaInterval[2]*i/n_a, 'x')
                 #self.USB4.send(deltaThetaInterval[3]*180/math.pi, 'x')
                 time.sleep(0.02)
-            #const speed loop
+            # const speed loop
             for i in range(int(n)):
                 self.USB1.send(deltaThetaInterval[0], 'x')
                 self.USB2.send(deltaThetaInterval[1], 'x')
@@ -133,53 +135,61 @@ class UI(QtWidgets.QMainWindow, Console):
     # def calibrate(self):
 
     def stirring(self):
-        self.kooka.currenAngUpdate()
-        goal = []
-        if(self.i ==0):
-            goal = [0.4, 0.4, 0.4]
-            self.i = 1
-        elif(self.i == 1):
-            goal = [0.3, 0, 0.48]
-            self.i = 0
-        angles = self.kooka.ik(goal)
-        self.kooka.joint_ang_new = np.array([angles[0], angles[1], angles[2], angles[3]])
+        for iii in range(16):
+            self.kooka.currenAngUpdate()
+            goal = []
+            if(self.i == 0):
+                goal = [0.4, 0, 0.2]
+                self.i = 1
+            elif(self.i == 1):
+                goal = [0.4, 0.1, 0.2]
+                self.i = 2
+            elif(self.i == 2):
+                goal = [0.3, 0.1, 0.2]
+                self.i = 3
+            elif(self.i == 3):
+                goal = [0.3, 0, 0.2]
+                self.i = 0
+            angles = self.kooka.ik(goal)
+            self.kooka.joint_ang_new = np.array(
+                [angles[0], angles[1], angles[2], angles[3]])
 
-        if(self.fullyConencted == True):
-            vel = self.dt_slot.text()
-            self.kooka.deltaThetas = 180/math.pi*self.kooka.diff()
-            maxAngle = max(abs(self.kooka.deltaThetas))
-            n = 50*maxAngle/float(vel)
-            deltaThetaInterval = self.kooka.deltaThetas/n
-            deltaThetaInterval[0] = -3*deltaThetaInterval[0]
-            deltaThetaInterval[1] = -deltaThetaInterval[1]
-            start = time.time()
+            if(self.fullyConencted == True):
+                vel = self.dt_slot.text()
+                self.kooka.deltaThetas = 180/math.pi*self.kooka.diff()
+                maxAngle = max(abs(self.kooka.deltaThetas))
+                n = 50*maxAngle/float(vel)
+                deltaThetaInterval = self.kooka.deltaThetas/n
+                deltaThetaInterval[0] = -3*deltaThetaInterval[0]
+                deltaThetaInterval[1] = -deltaThetaInterval[1]
+                start = time.time()
 
-####### acceleration version
-            n_a = 10
-            n = n - n_a
+    # acceleration version
+                n_a = 10
+                n = n - n_a
 
-            #accelerating loop
-            for i in range(n_a):
-                self.USB1.send(deltaThetaInterval[0]*i/n_a, 'x')
-                self.USB2.send(deltaThetaInterval[1]*i/n_a, 'x')
-                self.USB3.send(deltaThetaInterval[2]*i/n_a, 'x')
-                #self.USB4.send(deltaThetaInterval[3]*180/math.pi, 'x')
-                time.sleep(0.02)
-            #const speed loop
-            for i in range(int(n)):
-                self.USB1.send(deltaThetaInterval[0], 'x')
-                self.USB2.send(deltaThetaInterval[1], 'x')
-                self.USB3.send(deltaThetaInterval[2], 'x')
-                #self.USB4.send(deltaThetaInterval[3]*180/math.pi, 'x')
-                time.sleep(0.02)
-            for i in range(n_a):
-                self.USB1.send(deltaThetaInterval[0]*(1-(i+1)/n_a), 'x')
-                self.USB2.send(deltaThetaInterval[1]*(1-i/n_a), 'x')
-                self.USB3.send(deltaThetaInterval[2]*(1-i/n_a), 'x')
-                #self.USB4.send(deltaThetaInterval[3]*180/math.pi, 'x')
-                time.sleep(0.02)
-        self.kooka.deltaThetas = self.kooka.diff()
-        self.vis.showAngle(self.diffSlots, self.kooka.deltaThetas)
+                # accelerating loop
+                for i in range(n_a):
+                    self.USB1.send(deltaThetaInterval[0]*i/n_a, 'x')
+                    self.USB2.send(deltaThetaInterval[1]*i/n_a, 'x')
+                    self.USB3.send(deltaThetaInterval[2]*i/n_a, 'x')
+                    #self.USB4.send(deltaThetaInterval[3]*180/math.pi, 'x')
+                    time.sleep(0.02)
+                # const speed loop
+                for i in range(int(n)):
+                    self.USB1.send(deltaThetaInterval[0], 'x')
+                    self.USB2.send(deltaThetaInterval[1], 'x')
+                    self.USB3.send(deltaThetaInterval[2], 'x')
+                    #self.USB4.send(deltaThetaInterval[3]*180/math.pi, 'x')
+                    time.sleep(0.02)
+                for i in range(n_a):
+                    self.USB1.send(deltaThetaInterval[0]*(1-(i+1)/n_a), 'x')
+                    self.USB2.send(deltaThetaInterval[1]*(1-i/n_a), 'x')
+                    self.USB3.send(deltaThetaInterval[2]*(1-i/n_a), 'x')
+                    #self.USB4.send(deltaThetaInterval[3]*180/math.pi, 'x')
+                    time.sleep(0.02)
+            self.kooka.deltaThetas = self.kooka.diff()
+            self.vis.showAngle(self.diffSlots, self.kooka.deltaThetas)
 
     def calibr(self):
         message = "c"
@@ -189,22 +199,20 @@ class UI(QtWidgets.QMainWindow, Console):
             self.terminal.append("Joint 1 is calibrated.")
         else:
             self.terminal.append("Joint 1 calibration failed.")
-        
-        #self.USB2.ser.write(message.encode())
+
+        # self.USB2.ser.write(message.encode())
         #retVal = self.USB2.ser.read()
-        #if(retVal == "d"):
+        # if(retVal == "d"):
         #    self.terminal.append("Joint 2 is calibrated.")
-        #else:
+        # else:
         #    self.terminal.append("Joint 2 calibration failed.")
-        #self.USB3.ser.write(message.encode())
+        # self.USB3.ser.write(message.encode())
         #retVal = self.USB3.ser.read()
-        #if(retVal == "d"):
+        # if(retVal == "d"):
         #    self.terminal.append("Joint 3 is calibrated.")
-        #else:
+        # else:
         #    self.terminal.append("Joint 3 calibration failed.")
-        #return True
-
-
+        # return True
 
     ''' An example of drawing a straight line
     def draw(self):
