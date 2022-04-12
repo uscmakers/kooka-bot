@@ -111,13 +111,13 @@ class kookabot:
 
     # create stirring trajectories
     def stir(self):                
-        center_x = self.x[2]-0.02
+        center_x = self.x[2]-0.2
         center_y = self.y[2]
         center_z = self.z[2]
 
-        for i in range(self.points):
-            self.x_stir[i] = center_x + 0.02*math.cos(2*math.pi*i/self.points)
-            self.y_stir[i] = center_y + 0.02*math.sin(2*math.pi*i/self.points)
+        for i in range(self.points): #yaw=20, shoulder = 18, elbow = 21
+            self.x_stir[i] = center_x + 0.2*math.cos(2*math.pi*i/self.points)
+            self.y_stir[i] = center_y + 0.2*math.sin(2*math.pi*i/self.points)
             self.z_stir[i] = center_z
             
 

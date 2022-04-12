@@ -32,7 +32,7 @@ class UI(QtWidgets.QMainWindow, Console):
         self.USB1 = comm('USB 1')
         self.USB2 = comm('USB 2')
         self.USB3 = comm('USB 3')
-        self.USB4 = comm('USB 4')
+        #self.USB4 = comm('USB 4')
         self.connec.clicked.connect(self.connecting)
         self.vis.showAngle(self.angleSlots, self.kooka.joint_ang_new)
         self.command.clicked.connect(self.send_cmd)
@@ -49,7 +49,7 @@ class UI(QtWidgets.QMainWindow, Console):
             self.USB1.connection(self.usb_1_slot.text())
             self.USB2.connection(self.usb_2_slot.text())
             self.USB3.connection(self.usb_3_slot.text())
-            self.USB4.connection(self.usb_4_slot.text(), self.terminal)
+            #self.USB4.connection(self.usb_4_slot.text(), self.terminal)
 
             if(self.USB1.connected == False or self.USB2.connected == False or self.USB3.connected == False):
                 self.terminal.append('Connection failed.')
@@ -221,6 +221,7 @@ class UI(QtWidgets.QMainWindow, Console):
         #retVal = self.USB3.ser.read()
         #if(retVal == "d"):
         #    self.terminal.append("Joint 3 is calibrated.")
+        #self.kooka.setAngCurrent(CALIBANG):
         #else:
         #    self.terminal.append("Joint 3 calibration failed.")
         #return True
