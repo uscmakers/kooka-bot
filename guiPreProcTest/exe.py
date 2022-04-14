@@ -1,6 +1,6 @@
 import sys
 from PyQt5.QtWidgets import QApplication
-from uitest import UI
+from stirtest import UI
 
 def main():
     app = QApplication(sys.argv)
