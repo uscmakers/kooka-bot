@@ -1,5 +1,6 @@
 //Globals
 #include <ezButton.h>
+#include <Servo.h>
 #define STEPPIN 8
 #define DIRPIN  7
 #define SWITCH  6 //
@@ -68,6 +69,7 @@ public:
   }
 };
 Driver myDriver;
+Servo myServo;
 char rec;
 String stuff_right = "";
 String comm_right = "0";
@@ -102,6 +104,10 @@ void loop() {
       if(calStatus) Serial.print("d");
       else Serial.print("e");
       stuff_right="";
+    }
+    else if(rec=='y')
+    {
+      
     }
     else
     {
