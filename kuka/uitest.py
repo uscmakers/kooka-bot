@@ -78,7 +78,7 @@ class UI(QtWidgets.QMainWindow, Console):
             self.terminal.append('Simulation mode on.')
             self.terminal.append('')
 
-    # changing the joint angle values and visualize new positions of the robot's joints 
+    # changing the joint angle values and visualize new positions of the robot's joints
     def slide(self, value):
         # obtain the slider's name
         widgetname = self.focusWidget().objectName()
@@ -112,6 +112,7 @@ class UI(QtWidgets.QMainWindow, Console):
 
     # send joint commands to the robot
     def send_cmd_joints(self):
+        self.kooka.servosingle = int(self.kooka.joint_ang_new[3])
 
         # update the kooka's new current angles upon sending joint commands
         self.kooka.currenAngUpdate()
@@ -125,7 +126,7 @@ class UI(QtWidgets.QMainWindow, Console):
         # if the robot is connected via USBs
         if(self.fullyConencted == True):
             vel = self.dt_slot.text()
-            self.kooka.deltaThetas = 180/math.pi*self.kooka.beginning
+            self.kooka.deltaThetas = 180/math.pi*self.kooka.deltaThetas
             maxAngle = max(abs(self.kooka.deltaThetas))
             n = 50*maxAngle/float(vel)
             deltaThetaInterval = self.kooka.deltaThetas/n
@@ -142,6 +143,7 @@ class UI(QtWidgets.QMainWindow, Console):
                 self.USB1.send(deltaThetaInterval[0]*i/n_a, 'x')
                 self.USB2.send(deltaThetaInterval[1]*i/n_a, 'x')
                 self.USB3.send(deltaThetaInterval[2]*i/n_a, 'x')
+                self.USB1.send(self.kooka.servosingle, 'y')
                 #self.USB4.send(deltaThetaInterval[3]*180/math.pi, 'x')
                 time.sleep(0.02)
             #const speed loop
@@ -202,7 +204,7 @@ class UI(QtWidgets.QMainWindow, Console):
         # if the robot is connected via USBs
         if(self.fullyConencted == True):
             vel = self.dt_slot.text()
-            self.kooka.deltaThetas = 180/math.pi*self.kooka.beginning
+            self.kooka.deltaThetas = 180/math.pi*self.kooka.deltaThetas
             maxAngle = max(abs(self.kooka.deltaThetas))
             n = 50*maxAngle/float(vel)
             deltaThetaInterval = self.kooka.deltaThetas/n
@@ -264,7 +266,7 @@ class UI(QtWidgets.QMainWindow, Console):
         center_y = self.newgoalcenter[1]
         center_z = self.newgoalcenter[2]
 
-        # xyz coordinates of the kooka's stirring trajectory based on where the kooka starts stirring  
+        # xyz coordinates of the kooka's stirring trajectory based on where the kooka starts stirring
         for i in range(self.kooka.points):
             self.kooka.x_stir[i] = center_x + self.kooka.stir_radius*math.cos(2*math.pi*i/self.kooka.points)
             self.kooka.y_stir[i] = center_y + self.kooka.stir_radius*math.sin(2*math.pi*i/self.kooka.points)
@@ -329,7 +331,6 @@ class UI(QtWidgets.QMainWindow, Console):
         if(self.newplanning == True):
             self.i = 1
             self.newplanning = False
-
         self.goal = self.tra[self.i]
         self.i+=1
         if(self.i == self.kooka.points):
@@ -353,6 +354,7 @@ class UI(QtWidgets.QMainWindow, Console):
                 self.USB1.send(self.deltastosend[0][0]*i/n_a, 'x')
                 self.USB2.send(self.deltastosend[0][1]*i/n_a, 'x')
                 self.USB3.send(self.deltastosend[0][2]*i/n_a, 'x')
+                self.USB1.send(self.kooka.servoAngles[0], 'y')
                 #print(self.deltastosend[0][0]*i/n_a+" "+self.deltastosend[0][1]*i/n_a+" "+self.deltastosend[0][2]*i/n_a)
                 #self.USB4.send(self.deltastosend[3]*180/math.pi, 'x')
                 time.sleep(0.02)
@@ -361,6 +363,7 @@ class UI(QtWidgets.QMainWindow, Console):
                 self.USB1.send(self.deltastosend[i][0], 'x')
                 self.USB2.send(self.deltastosend[i][1], 'x')
                 self.USB3.send(self.deltastosend[i][2], 'x')
+                self.USB1.send(self.kooka.servoAngles[i], 'y')
                 #print(self.deltastosend[0][0]*i/n_a+" "+self.deltastosend[0][1]*i/n_a+" "+self.deltastosend[0][2]*i/n_a)
                 #self.USB4.send(self.deltastosend[3]*180/math.pi, 'x')
                 time.sleep(0.02)
@@ -368,6 +371,7 @@ class UI(QtWidgets.QMainWindow, Console):
                 self.USB1.send(self.deltastosend[self.kooka.points-1][0]*(1-(i+1)/n_a), 'x')
                 self.USB2.send(self.deltastosend[self.kooka.points-1][1]*(1-(i+1)/n_a), 'x')
                 self.USB3.send(self.deltastosend[self.kooka.points-1][2]*(1-(i+1)/n_a), 'x')
+                self.USB1.send(self.kooka.servoAngles[self.kooka.points-1], 'y')
                 #print(self.deltastosend[0][0]*i/n_a+" "+self.deltastosend[0][1]*i/n_a+" "+self.deltastosend[0][2]*i/n_a)
                 #self.USB4.send(self.deltastosend[3]*180/math.pi, 'x')
                 time.sleep(0.02)
