@@ -280,7 +280,7 @@ class UI(QtWidgets.QMainWindow, Console):
         self.newplanning = True
         self.angles.clear()
         current = [self.kooka.current_joint_ang[0]*180.0/(math.pi), self.kooka.current_joint_ang[1]*180.0/(math.pi), self.kooka.current_joint_ang[2]*180.0/(math.pi)]
-
+        self.kooka.servoAngles.clear()
         # calculate angles required at each points
         for i in range(self.kooka.points):
             #angles.append(self.kooka.ik())
@@ -294,6 +294,8 @@ class UI(QtWidgets.QMainWindow, Console):
             elb = float(angless[2])*180.0/(math.pi)
 
             self.angles.append([yaww, shoulde, elb])
+            
+            self.kooka.servoAngles.append(int(float(angless[3])*180/math.pi))
 
         # clear the array of required joint angle commands
         self.deltastosend.clear()
