@@ -1,4 +1,5 @@
 //Globals
+#include <Servo.h>
 #define STEPPIN 8
 #define DIRPIN  7
 #define SWITCH  6
@@ -68,14 +69,16 @@ public:
   }
 };
 Driver myDriver;
+Servo myServo;
 char rec;
 
 String stuff_right = "";
-String comm_right = "0";
+int comm_right;
 int timeprev = 0;
 bool calStatus = 0;
 void setup() {
   // put your setup code here, to run once:
+  myServo.attach(9);
   pinMode(STEPPIN,OUTPUT);
   pinMode(DIRPIN,OUTPUT);
   pinMode(LED,OUTPUT);
@@ -94,6 +97,7 @@ void loop() {
     }
     else if(rec=='c')
     {
+      myservo.writeMicroseconds(90);
       while (!digitalRead(SWITCH))
       {
         calStatus = myDriver.calibrate();
@@ -103,6 +107,11 @@ void loop() {
       if(calStatus) Serial.print("d");
       else Serial.print("e");
       stuff_right="";
+    }
+    else if(rec=='y') 
+    {
+      comm_right = toInt(stuff_right);
+      myservo.writeMicroseconds(comm_right);
     }
     else
     {
