@@ -9,6 +9,7 @@ from comm import comm
 import serial
 import time
 
+
 class UI(QtWidgets.QMainWindow, Console):
     def __init__(self):
         super().__init__()
@@ -16,8 +17,10 @@ class UI(QtWidgets.QMainWindow, Console):
         # self.command.clicked.connect(self.send_cmd)
         # self.calibrate.clicked.connect(self.connect())
         self.points_list = []
-        self.angleSlots = [self.joint_1_box, self.joint_2_box, self.joint_3_box, self.joint_4_box,]
-        self.diffSlots = [self.delta_1, self.delta_2, self.delta_3, self.delta_4]
+        self.angleSlots = [self.joint_1_box, self.joint_2_box,
+                           self.joint_3_box, self.joint_4_box, ]
+        self.diffSlots = [self.delta_1,
+                          self.delta_2, self.delta_3, self.delta_4]
         self.kooka = kookabot()
         self.vis = visualizer(self.kooka, self.view)
         self.joint_1_slider.setValue(180*self.kooka.joint_ang_new[0]/math.pi)
@@ -35,24 +38,21 @@ class UI(QtWidgets.QMainWindow, Console):
         self.USB4 = comm('USB 4')
         self.connec.clicked.connect(self.connecting)
         self.vis.showAngle(self.angleSlots, self.kooka.joint_ang_new)
-        self.command.clicked.connect(self.send_cmd_joints)
+        self.command.clicked.connect(self.send_cmd)
         self.cartesian.clicked.connect(self.send_cmd_cartesian)
         self.vis.showAngle(self.diffSlots, self.kooka.diff())
         self.vis.draw()
         self.stir.clicked.connect(self.stirring)
         self.calibrate.clicked.connect(self.calibr)
         self.i = 0
-        self.goal = []
+        self.servoAngle = int(self.kooka.joint_ang_new[3]*180/math.pi)
         self.newgoalcenter = None
-        self.goalcenter = None
         self.tra = np.empty([self.kooka.points, 3])
         self.planner.clicked.connect(self.trajplan)
         self.newplanning = None
         self.plannedangles = None
         self.angles = []
         self.deltastosend = []
-        self.beginning = []
-     
 
     def connecting(self):
         if(self.fullyConencted == False):
@@ -78,29 +78,17 @@ class UI(QtWidgets.QMainWindow, Console):
             self.terminal.append('Simulation mode on.')
             self.terminal.append('')
 
-    # changing the joint angle values and visualize new positions of the robot's joints
     def slide(self, value):
-        # obtain the slider's name
         widgetname = self.focusWidget().objectName()
 
-        # angle values for the (2+1) rd and (3+1) th joints
         if(int(widgetname) == 2 or int(widgetname) == 3):
             self.kooka.joint_ang_new[int(widgetname)] = -value*math.pi/180
-        
-        # angle vale for the (0+1) st and (1+1)nd joints
         else:
             self.kooka.joint_ang_new[int(widgetname)] = value*math.pi/180
-        
-        # update and visualize all of the joints' future positions upon using sliders
+
         self.vis.draw()
-
-        # display angle values of the new joints in the GUI's text boxes
         self.vis.showAngle(self.angleSlots, self.kooka.joint_ang_new)
-
-        # calculate the angle displacements required to make to move from the current to the new desired positions
-        self.kooka.setDeltaThetas()
-
-        # show the angle displacements required to make to move from the current to the new desired positions
+        self.kooka.deltaThetas = self.kooka.diff()
         self.vis.showAngle(self.diffSlots, self.kooka.deltaThetas)
 
     def maxAng(self, angs):
@@ -110,20 +98,13 @@ class UI(QtWidgets.QMainWindow, Console):
 
         return n
 
-    # send joint commands to the robot
-    def send_cmd_joints(self):
-        self.kooka.servosingle = int(self.kooka.joint_ang_new[3])
-
-        # update the kooka's new current angles upon sending joint commands
+    def send_cmd(self):
         self.kooka.currenAngUpdate()
-
-        # visualize all of the joints' new current positions upon sending a command
         self.vis.updateCurrentPos()
-
-        # update and visualize all of the joints' future positions upon using sliders
         self.vis.draw()
-
-        # if the robot is connected via USBs
+        self.servoAngle = -int(self.kooka.joint_ang_new[3]*180/math.pi)
+        print(self.servoAngle)
+        
         if(self.fullyConencted == True):
             vel = self.dt_slot.text()
             self.kooka.deltaThetas = 180/math.pi*self.kooka.deltaThetas
@@ -134,19 +115,19 @@ class UI(QtWidgets.QMainWindow, Console):
             deltaThetaInterval[1] = -deltaThetaInterval[1]
             start = time.time()
 
-####### acceleration version
+# acceleration version
             n_a = 10
             n = n - n_a
 
-            #accelerating loop
+            # accelerating loop
             for i in range(n_a):
                 self.USB1.send(deltaThetaInterval[0]*i/n_a, 'x')
                 self.USB2.send(deltaThetaInterval[1]*i/n_a, 'x')
                 self.USB3.send(deltaThetaInterval[2]*i/n_a, 'x')
-                self.USB1.send(self.kooka.servosingle, 'y')
+                self.USB1.send(self.servoAngle,'y')
                 #self.USB4.send(deltaThetaInterval[3]*180/math.pi, 'x')
                 time.sleep(0.02)
-            #const speed loop
+            # const speed loop
             for i in range(int(n)):
                 self.USB1.send(deltaThetaInterval[0], 'x')
                 self.USB2.send(deltaThetaInterval[1], 'x')
@@ -161,47 +142,31 @@ class UI(QtWidgets.QMainWindow, Console):
                 time.sleep(0.02)
 
 #######
-
-        # new delta thetas = 0
         self.kooka.deltaThetas = self.kooka.diff()
-
-        # display new delta thetas
         self.vis.showAngle(self.diffSlots, self.kooka.deltaThetas)
 
-# send joint commands to the robot
+
     def send_cmd_cartesian(self):
-
-        # new goal position of the manipulator's tip
-        self.newgoalcenter = [float(self.xslot.text()), float(self.yslot.text()), float(self.zslot.text())]
-
-        # calculate desired new angles to achieve new x,y,z positions given in the console
-        angles = self.kooka.ik(self.newgoalcenter)
-
-        # set the angles from the ik solver as new angles
-        self.kooka.setAngNew(angles)
-
-        # update and visualize all of the joints' future positions upon using sliders
-        self.vis.draw()
-
-        # display angle values of the new joints in the GUI's text boxes
+        #print(self.kooka.current_joint_ang)
+        goal = [float(self.xslot.text()), float(self.yslot.text()), float(self.zslot.text())]
+        angles = self.kooka.ik(goal)
+        self.kooka.joint_ang_new = np.array([float(angles[0]), float(angles[1]), float(angles[2]), float(angles[3])])
+        #print(self.kooka.joint_ang_new*180/math.pi)
+        #print(self.kooka.joint_ang_new)
         self.vis.showAngle(self.angleSlots, self.kooka.joint_ang_new)
-
-        # calculate the angle displacements required to make to move from the current to the new desired positions
-        self.kooka.setDeltaThetas()
-
-        # show the angle displacements required to make to move from the current to the new desired positions
-        self.vis.showAngle(self.diffSlots, self.kooka.deltaThetas)
-
-        # update the kooka's new current angles upon sending joint commands
-        self.kooka.currenAngUpdate()
-
-        # visualize all of the joints' new current positions upon sending a command
-        self.vis.updateCurrentPos()
-
-        # update and visualize all of the joints' future positions upon using sliders
+        self.kooka.deltaThetas = self.kooka.diff()
+        #print(self.kooka.deltaThetas*180/math.pi)
         self.vis.draw()
-
-        # if the robot is connected via USBs
+        self.vis.showAngle(self.diffSlots, self.kooka.deltaThetas)
+        self.kooka.currenAngUpdate()
+        self.vis.updateCurrentPos()
+        self.vis.draw()
+        self.servoAngle = int(self.kooka.joint_ang_new[3]*180/math.pi*-1)
+        #print(self.servoAngle)
+        #print(self.servoAngle)
+        #print(self.kooka.deltaThetas*180/math.pi)
+        
+        
         if(self.fullyConencted == True):
             vel = self.dt_slot.text()
             self.kooka.deltaThetas = 180/math.pi*self.kooka.deltaThetas
@@ -212,18 +177,19 @@ class UI(QtWidgets.QMainWindow, Console):
             deltaThetaInterval[1] = -deltaThetaInterval[1]
             start = time.time()
 
-####### acceleration version
+# acceleration version
             n_a = 10
             n = n - n_a
 
-            #accelerating loop
+            # accelerating loop
             for i in range(n_a):
                 self.USB1.send(deltaThetaInterval[0]*i/n_a, 'x')
                 self.USB2.send(deltaThetaInterval[1]*i/n_a, 'x')
                 self.USB3.send(deltaThetaInterval[2]*i/n_a, 'x')
+                self.USB1.send(self.servoAngle,'y')
                 #self.USB4.send(deltaThetaInterval[3]*180/math.pi, 'x')
                 time.sleep(0.02)
-            #const speed loop
+            # const speed loop
             for i in range(int(n)):
                 self.USB1.send(deltaThetaInterval[0], 'x')
                 self.USB2.send(deltaThetaInterval[1], 'x')
@@ -238,19 +204,13 @@ class UI(QtWidgets.QMainWindow, Console):
                 time.sleep(0.02)
 
 #######
-
-        # new delta thetas = 0
         self.kooka.deltaThetas = self.kooka.diff()
-
-        # display new delta thetas
         self.vis.showAngle(self.diffSlots, self.kooka.deltaThetas)
-
-    # def calibrate(self):
 
     def trajplan(self):
         # update the radius and the number of trajectory points
         self.kooka.setRadius(float(self.radius_slot.text()))
-        self.kooka.setPoints(int(self.kooka.points))
+        self.kooka.setPoints(int(self.points_slot.text()))
         self.tra = np.empty([self.kooka.points, 3])
         '''
         self.kooka.points = int(self.points_slot.text())
@@ -294,14 +254,14 @@ class UI(QtWidgets.QMainWindow, Console):
             elb = float(angless[2])*180.0/(math.pi)
 
             self.angles.append([yaww, shoulde, elb])
-            
-            self.kooka.servoAngles.append(int(float(angless[3])*180/math.pi))
+
+            self.kooka.servoAngles.append(int(float(angless[3])*180/math.pi*-1))
 
         # clear the array of required joint angle commands
         self.deltastosend.clear()
 
         # fist required joint command
-        self.beginning = [self.angles[0][0]-current[0], self.angles[0][1]-current[1], self.angles[0][2]-current[2]]
+        #self.beginning = [self.angles[0][0]-current[0], self.angles[0][1]-current[1], self.angles[0][2]-current[2]]
 
         # calculate required joint angle commands moving from i th to i+1 points
         for i in range(self.kooka.points-1):
@@ -318,70 +278,18 @@ class UI(QtWidgets.QMainWindow, Console):
         anglesettwo = self.angles[0]
         anglesetone = self.angles[self.kooka.points-1]
         self.deltastosend.append([anglesettwo[0]-anglesetone[0], anglesettwo[1]-anglesetone[1], anglesettwo[2]-anglesetone[2]])
-        #print(self.beginning)
 
         # multiply coefficients in the required deltathetas
         for i in range(self.kooka.points):
+            print(self.deltastosend[i])
+            #print(self.kooka.servoAngles[i])
             #self.deltastosend[i][0] = self.deltastosend[i][0]
             #self.deltastosend[i][1] = self.deltastosend[i][1]
             self.deltastosend[i][0] = -3*self.deltastosend[i][0]
             self.deltastosend[i][1] = -1*self.deltastosend[i][1]
-            print(self.deltastosend[i])
+            #print(self.deltastosend[i])
 
-    def stirring(self):
-        '''
-        if(self.newplanning == True):
-            self.i = 1
-            self.newplanning = False
-        self.goal = self.tra[self.i]
-        self.i+=1
-        if(self.i == self.kooka.points):
-            self.i = 0
-        
-        ## visualize the robot's position changes in the GUI
-        angles = self.kooka.ik(self.goal)
-        self.kooka.joint_ang_new = np.array([angles[0], angles[1], angles[2], angles[3]])
-        self.kooka.deltaThetas = 180/math.pi*self.kooka.diff()
-        # display angle values of the new joints in the GUI's text boxes
-        self.vis.showAngle(self.angleSlots, self.kooka.joint_ang_new)
-        '''
 
-####### acceleration version
-        if(self.fullyConencted == True):
-            n_a = 10
-            n = self.kooka.points - n_a
-
-            #accelerating loop
-            for i in range(n_a):
-                self.USB1.send(self.deltastosend[0][0]*i/n_a, 'x')
-                self.USB2.send(self.deltastosend[0][1]*i/n_a, 'x')
-                self.USB3.send(self.deltastosend[0][2]*i/n_a, 'x')
-                self.USB1.send(self.kooka.servoAngles[0], 'y')
-                #print(self.deltastosend[0][0]*i/n_a+" "+self.deltastosend[0][1]*i/n_a+" "+self.deltastosend[0][2]*i/n_a)
-                #self.USB4.send(self.deltastosend[3]*180/math.pi, 'x')
-                time.sleep(0.02)
-            #const speed loop
-            for i in range(int(n)):
-                self.USB1.send(self.deltastosend[i][0], 'x')
-                self.USB2.send(self.deltastosend[i][1], 'x')
-                self.USB3.send(self.deltastosend[i][2], 'x')
-                self.USB1.send(self.kooka.servoAngles[i], 'y')
-                #print(self.deltastosend[0][0]*i/n_a+" "+self.deltastosend[0][1]*i/n_a+" "+self.deltastosend[0][2]*i/n_a)
-                #self.USB4.send(self.deltastosend[3]*180/math.pi, 'x')
-                time.sleep(0.02)
-            for i in range(n_a):
-                self.USB1.send(self.deltastosend[self.kooka.points-1][0]*(1-(i+1)/n_a), 'x')
-                self.USB2.send(self.deltastosend[self.kooka.points-1][1]*(1-(i+1)/n_a), 'x')
-                self.USB3.send(self.deltastosend[self.kooka.points-1][2]*(1-(i+1)/n_a), 'x')
-                self.USB1.send(self.kooka.servoAngles[self.kooka.points-1], 'y')
-                #print(self.deltastosend[0][0]*i/n_a+" "+self.deltastosend[0][1]*i/n_a+" "+self.deltastosend[0][2]*i/n_a)
-                #self.USB4.send(self.deltastosend[3]*180/math.pi, 'x')
-                time.sleep(0.02)
-
-        self.kooka.currenAngUpdate()
-        self.vis.updateCurrentPos()
-        self.vis.draw()
-        
     def calibr(self):
         message = "c"
         self.USB1.ser.write(message.encode())
@@ -390,21 +298,20 @@ class UI(QtWidgets.QMainWindow, Console):
             self.terminal.append("Joint 1 is calibrated.")
         else:
             self.terminal.append("Joint 1 calibration failed.")
-        self.USB2.ser.write(message.encode())
-        retVal = self.USB2.ser.read()
-        if(retVal == "d"):
-            self.terminal.append("Joint 2 is calibrated.")
-        else:
-            self.terminal.append("Joint 2 calibration failed.")
-        self.USB3.ser.write(message.encode())
-        retVal = self.USB3.ser.read()
-        if(retVal == "d"):
-            self.terminal.append("Joint 3 is calibrated.")
-        else:
-            self.terminal.append("Joint 3 calibration failed.")
-        return True
 
-
+        # self.USB2.ser.write(message.encode())
+        #retVal = self.USB2.ser.read()
+        # if(retVal == "d"):
+        #    self.terminal.append("Joint 2 is calibrated.")
+        # else:
+        #    self.terminal.append("Joint 2 calibration failed.")
+        # self.USB3.ser.write(message.encode())
+        #retVal = self.USB3.ser.read()
+        # if(retVal == "d"):
+        #    self.terminal.append("Joint 3 is calibrated.")
+        # else:
+        #    self.terminal.append("Joint 3 calibration failed.")
+        # return True
 
     ''' An example of drawing a straight line
     def draw(self):
@@ -417,3 +324,67 @@ class UI(QtWidgets.QMainWindow, Console):
         drawing_variable = gl.GLLinePlotItem(pos = points_array, width = 1, antialias = True)   #make a variable to store drawing data(specify the points, set antialiasing)
         self.view.addItem(drawing_variable)
         '''
+
+    def stirring(self):
+
+        '''
+        ## this is for debugging (line 329 - 347)
+        if(self.newplanning == True):
+            self.i = 1
+            self.newplanning = False
+
+        self.goal = self.tra[self.i]
+        self.i+=1
+        if(self.i == self.kooka.points):
+            self.i = 0
+
+        ## visualize the robot's position changes in the GUI
+        angles = self.kooka.ik(self.goal)
+        self.kooka.joint_ang_new = np.array([angles[0], angles[1], angles[2], angles[3]])
+        self.kooka.deltaThetas = 180/math.pi*self.kooka.diff()
+        print(self.kooka.deltaThetas)
+        # display angle values of the new joints in the GUI's text boxes
+        self.vis.showAngle(self.angleSlots, self.kooka.joint_ang_new)
+        
+        #self.kooka.deltaThetas = 180/math.pi*self.kooka.diff()
+        #print(self.kooka.deltaThetas)
+
+        self.kooka.currenAngUpdate()
+        self.vis.updateCurrentPos()
+        self.vis.draw()
+        '''
+
+####### acceleration version
+        if(self.fullyConencted == True):
+            n_a = 10
+            n = self.kooka.points - n_a
+
+            #accelerating loop
+            for i in range(n_a):
+                self.USB1.send(self.deltastosend[0][0]*i/n_a, 'x')
+                ## shouldn't it be self.deltastosend[0][0] ???
+                self.USB2.send(self.deltastosend[0][1]*i/n_a, 'x')
+                self.USB3.send(self.deltastosend[0][2]*i/n_a, 'x')
+                self.USB1.send(self.kooka.servoAngles[0], 'y')
+                #print(self.deltastosend[0][0]*i/n_a+" "+self.deltastosend[0][1]*i/n_a+" "+self.deltastosend[0][2]*i/n_a)
+                #self.USB4.send(self.deltastosend[3]*180/math.pi, 'x')
+                time.sleep(0.02)
+            #const speed loop
+            for i in range(int(n-1)):
+                self.USB1.send(self.deltastosend[i+1][0], 'x')
+                self.USB2.send(self.deltastosend[i+1][1], 'x')
+                self.USB3.send(self.deltastosend[i+1][2], 'x')
+                self.USB1.send(self.kooka.servoAngles[i+1], 'y')
+                #print(self.deltastosend[0][0]*i/n_a+" "+self.deltastosend[0][1]*i/n_a+" "+self.deltastosend[0][2]*i/n_a)
+                #self.USB4.send(self.deltastosend[3]*180/math.pi, 'x')
+                time.sleep(0.02)
+            for i in range(n_a):
+                self.USB1.send(self.deltastosend[self.kooka.points-1][0]*(1-(i+1)/n_a), 'x')
+                self.USB2.send(self.deltastosend[self.kooka.points-1][1]*(1-i/n_a), 'x')
+                self.USB3.send(self.deltastosend[self.kooka.points-1][2]*(1-i/n_a), 'x')
+                self.USB1.send(self.kooka.servoAngles[self.kooka.points-1], 'y')
+                #print(self.deltastosend[0][0]*i/n_a+" "+self.deltastosend[0][1]*i/n_a+" "+self.deltastosend[0][2]*i/n_a)
+                #self.USB4.send(self.deltastosend[3]*180/math.pi, 'x')
+                time.sleep(0.02)
+
+        

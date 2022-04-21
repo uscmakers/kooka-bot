@@ -36,7 +36,7 @@ class kookabot:
     # initialize the joint angles
     def joint_init(self, INIT_ANG):
         joint_4 = -(math.pi/2+INIT_ANG[1]+INIT_ANG[2])
-        ang_array = np.array([INIT_ANG[0], INIT_ANG[1], INIT_ANG[2], -math.pi/6])
+        ang_array = np.array([INIT_ANG[0], INIT_ANG[1], INIT_ANG[2], joint_4])
 
         return ang_array #16    22    20
 
