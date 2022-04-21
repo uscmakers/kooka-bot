@@ -34,6 +34,22 @@ def pose_esitmation(frame, aruco_dict_type, matrix_coefficients, distortion_coef
 
             # Draw Axis
             cv2.aruco.drawAxis(frame, matrix_coefficients, distortion_coefficients, rvec, tvec, 0.01)
+            
+            # print("tvec: ", (abs(tvec[0][0][0]) * 10000).astype(np.int64), ", ", (abs(tvec[0][0][1]) * 10000).astype(np.int64))
+            # print("rvec: ", rvec)
+            
+            # Draw a point 5cm to the right of the marker
+            x = abs(tvec[0][0][0] * 10000).astype(np.int64)
+            y = abs(tvec[0][0][1] * 10000).astype(np.int64)
+            cv2.circle(frame, (x, y), radius=10, color=(0, 0, 255), thickness=-1)
+            
+            # Vector math stuff
+            # displacement = 100
+            # proj = rvec * displacement + abs(tvec * 1000)
+            # x = ((proj[0][0][0]).astype(np.int64))
+            # y = ((proj[0][0][1]).astype(np.int64))
+            # print ("proj: ", x, ", ", y)
+            # cv2.circle(frame, (x, y), radius=10, color=(0, 0, 255), thickness=-1)
 
     return frame
 
@@ -57,7 +73,7 @@ if __name__ == '__main__':
     k = np.load(calibration_matrix_path)
     d = np.load(distortion_coefficients_path)
 
-    video = cv2.VideoCapture(0)
+    video = cv2.VideoCapture(1)
     time.sleep(2.0)
 
     while True:

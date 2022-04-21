@@ -3,7 +3,7 @@ import cv2.aruco as aruco
   
 def GetCoords():
     
-    cap = cv2.VideoCapture(0)
+    cap = cv2.VideoCapture(1)
     cap.set(4, 480)
     
     # dictionary = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_4X4_50)
