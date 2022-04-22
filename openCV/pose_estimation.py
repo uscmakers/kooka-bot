@@ -1,3 +1,5 @@
+import math
+
 import numpy as np
 import cv2
 import sys
@@ -39,19 +41,65 @@ def pose_esitmation(frame, aruco_dict_type, matrix_coefficients, distortion_coef
             # print("rvec: ", rvec)
             
             # Draw a point 5cm to the right of the marker
-            x = abs(tvec[0][0][0] * 10000).astype(np.int64)
-            y = abs(tvec[0][0][1] * 10000).astype(np.int64)
-            cv2.circle(frame, (x, y), radius=10, color=(0, 0, 255), thickness=-1)
+            # x = abs(tvec[0][0][0] * 10000).astype(np.int64)
+            # y = abs(tvec[0][0][1] * 10000).astype(np.int64)
+            # cv2.circle(frame, (x, y), radius=10, color=(0, 0, 255), thickness=-1)
             
             # Vector math stuff
             # displacement = 100
-            # proj = rvec * displacement + abs(tvec * 1000)
+            # rodr = cv2.Rodrigues(rvec)
+            # print("potato1", rvec)
+            # # print(rodr[0])
+            # proj = rvec * displacement + tvec * 900
+            # # print("potato2", tvec)
             # x = ((proj[0][0][0]).astype(np.int64))
             # y = ((proj[0][0][1]).astype(np.int64))
-            # print ("proj: ", x, ", ", y)
-            # cv2.circle(frame, (x, y), radius=10, color=(0, 0, 255), thickness=-1)
+            # # print ("proj: ", x, ", ", y)
+            
+            # use theta
+            displacement = 50
+            theta = rvec[0][0][1]
+            # print(theta)
+            x = (displacement * np.cos(theta)).astype(np.int64)
+            y = (displacement * np.sin(theta)).astype(np.int64)
+            x += (tvec[0][0][0] * 100).astype(np.int64)
+            y += (tvec[0][0][1] * 100).astype(np.int64)
+            # print ("proj: ", x, ", ", y) 
+            print(tvec)
+            cv2.circle(frame, (x, y), radius=10, color=(0, 0, 255), thickness=-1)
 
     return frame
+
+
+# Checks if a matrix is a valid rotation matrix.
+def isRotationMatrix(R) :
+    Rt = np.transpose(R)
+    shouldBeIdentity = np.dot(Rt, R)
+    I = np.identity(3, dtype = R.dtype)
+    n = np.linalg.norm(I - shouldBeIdentity)
+    return n < 1e-6
+
+# Calculates rotation matrix to euler angles
+# The result is the same as MATLAB except the order
+# of the euler angles ( x and z are swapped ).
+def rotationMatrixToEulerAngles(R) :
+
+    assert(isRotationMatrix(R))
+
+    sy = math.sqrt(R[0,0] * R[0,0] +  R[1,0] * R[1,0])
+
+    singular = sy < 1e-6
+
+    if  not singular :
+        x = math.atan2(R[2,1] , R[2,2])
+        y = math.atan2(-R[2,0], sy)
+        z = math.atan2(R[1,0], R[0,0])
+    else :
+        x = math.atan2(-R[1,2], R[1,1])
+        y = math.atan2(-R[2,0], sy)
+        z = 0
+
+    return np.array([x, y, z])
 
 
 if __name__ == '__main__':
