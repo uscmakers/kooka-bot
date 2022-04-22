@@ -39,13 +39,13 @@ class UI(QtWidgets.QMainWindow, Console):
         self.connec.clicked.connect(self.connecting)
         self.vis.showAngle(self.angleSlots, self.kooka.joint_ang_new)
         self.command.clicked.connect(self.send_cmd)
-        self.cartesian.clicked.connect(self.send_cmd_cartesian)
+        self.cartesian.clicked.connect(self.send_cmd_cartesien)
         self.vis.showAngle(self.diffSlots, self.kooka.diff())
         self.vis.draw()
         self.stir.clicked.connect(self.stirring)
         self.calibrate.clicked.connect(self.calibr)
         self.i = 0
-        self.servoAngle = int(self.kooka.joint_ang_new[3]*180/math.pi)
+        self.servoAngle = self.servoAngle = -int(self.kooka.joint_ang_new[3]*180/math.pi)+90
         self.newgoalcenter = None
         self.tra = np.empty([self.kooka.points, 3])
         self.planner.clicked.connect(self.trajplan)
@@ -53,6 +53,8 @@ class UI(QtWidgets.QMainWindow, Console):
         self.plannedangles = None
         self.angles = []
         self.deltastosend = []
+        self.deltastosendOpposite = []
+        print(self.servoAngle)
 
     def connecting(self):
         if(self.fullyConencted == False):
@@ -60,6 +62,7 @@ class UI(QtWidgets.QMainWindow, Console):
             self.USB2.connection(self.usb_2_slot.text())
             self.USB3.connection(self.usb_3_slot.text())
             #self.USB4.connection(self.usb_4_slot.text(), self.terminal)
+            self.USB3.send(180, 'y')
 
             if(self.USB1.connected == False or self.USB2.connected == False or self.USB3.connected == False):
                 self.terminal.append('Connection failed.')
@@ -77,6 +80,8 @@ class UI(QtWidgets.QMainWindow, Console):
             self.connec.setText("Connect")
             self.terminal.append('Simulation mode on.')
             self.terminal.append('')
+
+        
 
     def slide(self, value):
         widgetname = self.focusWidget().objectName()
@@ -102,7 +107,7 @@ class UI(QtWidgets.QMainWindow, Console):
         self.kooka.currenAngUpdate()
         self.vis.updateCurrentPos()
         self.vis.draw()
-        self.servoAngle = -int(self.kooka.joint_ang_new[3]*180/math.pi)
+        self.servoAngle = -int(self.kooka.joint_ang_new[3]*180/math.pi)+90
         print(self.servoAngle)
         
         if(self.fullyConencted == True):
@@ -124,7 +129,6 @@ class UI(QtWidgets.QMainWindow, Console):
                 self.USB1.send(deltaThetaInterval[0]*i/n_a, 'x')
                 self.USB2.send(deltaThetaInterval[1]*i/n_a, 'x')
                 self.USB3.send(deltaThetaInterval[2]*i/n_a, 'x')
-                self.USB1.send(self.servoAngle,'y')
                 #self.USB4.send(deltaThetaInterval[3]*180/math.pi, 'x')
                 time.sleep(0.02)
             # const speed loop
@@ -140,19 +144,26 @@ class UI(QtWidgets.QMainWindow, Console):
                 self.USB3.send(deltaThetaInterval[2]*(1-i/n_a), 'x')
                 #self.USB4.send(deltaThetaInterval[3]*180/math.pi, 'x')
                 time.sleep(0.02)
+            self.USB3.send(self.servoAngle, 'y')
+            #self.USB1.send(self.servoAngle,'y')
 
 #######
         self.kooka.deltaThetas = self.kooka.diff()
         self.vis.showAngle(self.diffSlots, self.kooka.deltaThetas)
 
 
-    def send_cmd_cartesian(self):
+    def send_cmd_cartesien(self):
         #print(self.kooka.current_joint_ang)
+        self.kooka.currenAngUpdate()
         goal = [float(self.xslot.text()), float(self.yslot.text()), float(self.zslot.text())]
-        angles = self.kooka.ik(goal)
-        self.kooka.joint_ang_new = np.array([float(angles[0]), float(angles[1]), float(angles[2]), float(angles[3])])
+        
+        print(goal)
+        anglesss = self.kooka.ik(goal)
+        print(anglesss)
+        self.kooka.joint_ang_new = np.array([anglesss[0], anglesss[1], anglesss[2], anglesss[3]])
         #print(self.kooka.joint_ang_new*180/math.pi)
         #print(self.kooka.joint_ang_new)
+        '''
         self.vis.showAngle(self.angleSlots, self.kooka.joint_ang_new)
         self.kooka.deltaThetas = self.kooka.diff()
         #print(self.kooka.deltaThetas*180/math.pi)
@@ -161,7 +172,8 @@ class UI(QtWidgets.QMainWindow, Console):
         self.kooka.currenAngUpdate()
         self.vis.updateCurrentPos()
         self.vis.draw()
-        self.servoAngle = int(self.kooka.joint_ang_new[3]*180/math.pi*-1)
+        '''
+        self.servoAngle = -int(self.kooka.joint_ang_new[3]*180/math.pi)+90
         #print(self.servoAngle)
         #print(self.servoAngle)
         #print(self.kooka.deltaThetas*180/math.pi)
@@ -169,24 +181,25 @@ class UI(QtWidgets.QMainWindow, Console):
         
         if(self.fullyConencted == True):
             vel = self.dt_slot.text()
-            self.kooka.deltaThetas = 180/math.pi*self.kooka.deltaThetas
+            self.kooka.deltaThetas = 180/math.pi*self.kooka.diff()
             maxAngle = max(abs(self.kooka.deltaThetas))
             n = 50*maxAngle/float(vel)
             deltaThetaInterval = self.kooka.deltaThetas/n
             deltaThetaInterval[0] = -3*deltaThetaInterval[0]
             deltaThetaInterval[1] = -deltaThetaInterval[1]
             start = time.time()
+            print(deltaThetaInterval)
+            print(n)
 
 # acceleration version
             n_a = 10
             n = n - n_a
-
             # accelerating loop
             for i in range(n_a):
                 self.USB1.send(deltaThetaInterval[0]*i/n_a, 'x')
                 self.USB2.send(deltaThetaInterval[1]*i/n_a, 'x')
                 self.USB3.send(deltaThetaInterval[2]*i/n_a, 'x')
-                self.USB1.send(self.servoAngle,'y')
+                #self.USB1.send(self.servoAngle,'y')
                 #self.USB4.send(deltaThetaInterval[3]*180/math.pi, 'x')
                 time.sleep(0.02)
             # const speed loop
@@ -202,6 +215,7 @@ class UI(QtWidgets.QMainWindow, Console):
                 self.USB3.send(deltaThetaInterval[2]*(1-i/n_a), 'x')
                 #self.USB4.send(deltaThetaInterval[3]*180/math.pi, 'x')
                 time.sleep(0.02)
+            self.USB3.send(self.servoAngle, 'y')
 
 #######
         self.kooka.deltaThetas = self.kooka.diff()
@@ -255,7 +269,11 @@ class UI(QtWidgets.QMainWindow, Console):
 
             self.angles.append([yaww, shoulde, elb])
 
-            self.kooka.servoAngles.append(int(float(angless[3])*180/math.pi*-1))
+            servoAngleee = -int(angless[3]*180/math.pi)+90
+
+            self.kooka.servoAngles.append(servoAngleee)
+            print(self.kooka.servoAngles[i])
+
 
         # clear the array of required joint angle commands
         self.deltastosend.clear()
@@ -278,15 +296,27 @@ class UI(QtWidgets.QMainWindow, Console):
         anglesettwo = self.angles[0]
         anglesetone = self.angles[self.kooka.points-1]
         self.deltastosend.append([anglesettwo[0]-anglesetone[0], anglesettwo[1]-anglesetone[1], anglesettwo[2]-anglesetone[2]])
+        self.deltastosendOpposite.append([anglesetone[0]-anglesettwo[0], anglesetone[1]-anglesettwo[1], anglesetone[2]-anglesettwo[2]])
+
+        for i in range(self.kooka.points-1,0,-1):
+            # i th point
+            anglesetone = self.angles[i]
+
+            # i - 1 th point
+            anglesettwo = self.angles[i-1]
+
+            self.deltastosendOpposite.append([anglesettwo[0]-anglesetone[0], anglesettwo[1]-anglesetone[1], anglesettwo[2]-anglesetone[2]])
 
         # multiply coefficients in the required deltathetas
         for i in range(self.kooka.points):
-            print(self.deltastosend[i])
             #print(self.kooka.servoAngles[i])
             #self.deltastosend[i][0] = self.deltastosend[i][0]
             #self.deltastosend[i][1] = self.deltastosend[i][1]
             self.deltastosend[i][0] = -3*self.deltastosend[i][0]
             self.deltastosend[i][1] = -1*self.deltastosend[i][1]
+
+            self.deltastosendOpposite[i][0] = -3*self.deltastosendOpposite[i][0]
+            self.deltastosendOpposite[i][1] = -1*self.deltastosendOpposite[i][1]
             #print(self.deltastosend[i])
 
 
@@ -354,37 +384,75 @@ class UI(QtWidgets.QMainWindow, Console):
         self.vis.draw()
         '''
 
+        revolutions = int(self.rev_slot.text())
+
 ####### acceleration version
         if(self.fullyConencted == True):
             n_a = 10
             n = self.kooka.points - n_a
+            xxx = 1
+            for j in range(revolutions):
 
-            #accelerating loop
-            for i in range(n_a):
-                self.USB1.send(self.deltastosend[0][0]*i/n_a, 'x')
-                ## shouldn't it be self.deltastosend[0][0] ???
-                self.USB2.send(self.deltastosend[0][1]*i/n_a, 'x')
-                self.USB3.send(self.deltastosend[0][2]*i/n_a, 'x')
-                self.USB1.send(self.kooka.servoAngles[0], 'y')
-                #print(self.deltastosend[0][0]*i/n_a+" "+self.deltastosend[0][1]*i/n_a+" "+self.deltastosend[0][2]*i/n_a)
-                #self.USB4.send(self.deltastosend[3]*180/math.pi, 'x')
-                time.sleep(0.02)
-            #const speed loop
-            for i in range(int(n-1)):
-                self.USB1.send(self.deltastosend[i+1][0], 'x')
-                self.USB2.send(self.deltastosend[i+1][1], 'x')
-                self.USB3.send(self.deltastosend[i+1][2], 'x')
-                self.USB1.send(self.kooka.servoAngles[i+1], 'y')
-                #print(self.deltastosend[0][0]*i/n_a+" "+self.deltastosend[0][1]*i/n_a+" "+self.deltastosend[0][2]*i/n_a)
-                #self.USB4.send(self.deltastosend[3]*180/math.pi, 'x')
-                time.sleep(0.02)
-            for i in range(n_a):
-                self.USB1.send(self.deltastosend[self.kooka.points-1][0]*(1-(i+1)/n_a), 'x')
-                self.USB2.send(self.deltastosend[self.kooka.points-1][1]*(1-i/n_a), 'x')
-                self.USB3.send(self.deltastosend[self.kooka.points-1][2]*(1-i/n_a), 'x')
-                self.USB1.send(self.kooka.servoAngles[self.kooka.points-1], 'y')
-                #print(self.deltastosend[0][0]*i/n_a+" "+self.deltastosend[0][1]*i/n_a+" "+self.deltastosend[0][2]*i/n_a)
-                #self.USB4.send(self.deltastosend[3]*180/math.pi, 'x')
-                time.sleep(0.02)
+                if(j%2 == 0):
+
+                    #accelerating loop
+                    for i in range(n_a):
+                        self.USB1.send(xxx*self.deltastosend[0][0]*i/n_a, 'x')
+                        ## shouldn't it be self.deltastosend[0][0] ???
+                        self.USB2.send(xxx*self.deltastosend[0][1]*i/n_a, 'x')
+                        self.USB3.send(xxx*self.deltastosend[0][2]*i/n_a, 'x')
+                        self.USB3.send(self.kooka.servoAngles[0], 'y')
+                        #print(self.deltastosend[0][0]*i/n_a+" "+self.deltastosend[0][1]*i/n_a+" "+self.deltastosend[0][2]*i/n_a)
+                        #self.USB4.send(self.deltastosend[3]*180/math.pi, 'x')
+                        time.sleep(0.02)
+                    #const speed loop
+                    for i in range(int(n-1)):
+                        self.USB1.send(xxx*self.deltastosend[i+1][0], 'x')
+                        self.USB2.send(xxx*self.deltastosend[i+1][1], 'x')
+                        self.USB3.send(xxx*self.deltastosend[i+1][2], 'x')
+                        self.USB3.send(self.kooka.servoAngles[i+1], 'y')
+                        #print(self.deltastosend[0][0]*i/n_a+" "+self.deltastosend[0][1]*i/n_a+" "+self.deltastosend[0][2]*i/n_a)
+                        #self.USB4.send(self.deltastosend[3]*180/math.pi, 'x')
+                        time.sleep(0.02)
+                    for i in range(n_a):
+                        self.USB1.send(xxx*self.deltastosend[self.kooka.points-1][0]*(1-(i+1)/n_a), 'x')
+                        self.USB2.send(xxx*self.deltastosend[self.kooka.points-1][1]*(1-i/n_a), 'x')
+                        self.USB3.send(xxx*self.deltastosend[self.kooka.points-1][2]*(1-i/n_a), 'x')
+                        self.USB3.send(self.kooka.servoAngles[self.kooka.points-1], 'y')
+                        #print(self.deltastosend[0][0]*i/n_a+" "+self.deltastosend[0][1]*i/n_a+" "+self.deltastosend[0][2]*i/n_a)
+                        #self.USB4.send(self.deltastosend[3]*180/math.pi, 'x')
+                        time.sleep(0.02)
+
+                else:
+
+                    #accelerating loop
+                    for i in range(n_a):
+                        self.USB1.send(xxx*self.deltastosendOpposite[0][0]*i/n_a, 'x')
+                        ## shouldn't it be self.deltastosend[0][0] ???
+                        self.USB2.send(xxx*self.deltastosendOpposite[0][1]*i/n_a, 'x')
+                        self.USB3.send(xxx*self.deltastosendOpposite[0][2]*i/n_a, 'x')
+                        self.USB3.send(self.kooka.servoAngles[0], 'y')
+                        #print(self.deltastosend[0][0]*i/n_a+" "+self.deltastosend[0][1]*i/n_a+" "+self.deltastosend[0][2]*i/n_a)
+                        #self.USB4.send(self.deltastosend[3]*180/math.pi, 'x')
+                        time.sleep(0.02)
+                    #const speed loop
+                    for i in range(int(n-1)):
+                        self.USB1.send(xxx*self.deltastosendOpposite[i+1][0], 'x')
+                        self.USB2.send(xxx*self.deltastosendOpposite[i+1][1], 'x')
+                        self.USB3.send(xxx*self.deltastosendOpposite[i+1][2], 'x')
+                        self.USB3.send(self.kooka.servoAngles[i+1], 'y')
+                        #print(self.deltastosend[0][0]*i/n_a+" "+self.deltastosend[0][1]*i/n_a+" "+self.deltastosend[0][2]*i/n_a)
+                        #self.USB4.send(self.deltastosend[3]*180/math.pi, 'x')
+                        time.sleep(0.02)
+                    for i in range(n_a):
+                        self.USB1.send(xxx*self.deltastosendOpposite[self.kooka.points-1][0]*(1-(i+1)/n_a), 'x')
+                        self.USB2.send(xxx*self.deltastosendOpposite[self.kooka.points-1][1]*(1-i/n_a), 'x')
+                        self.USB3.send(xxx*self.deltastosendOpposite[self.kooka.points-1][2]*(1-i/n_a), 'x')
+                        self.USB3.send(self.kooka.servoAngles[self.kooka.points-1], 'y')
+                        #print(self.deltastosend[0][0]*i/n_a+" "+self.deltastosend[0][1]*i/n_a+" "+self.deltastosend[0][2]*i/n_a)
+                        #self.USB4.send(self.deltastosend[3]*180/math.pi, 'x')
+                        time.sleep(0.02)
+
+
 
         
