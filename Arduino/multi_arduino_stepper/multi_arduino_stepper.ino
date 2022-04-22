@@ -84,6 +84,7 @@ void setup() {
   pinMode(LED,OUTPUT);
   pinMode(SWITCH,INPUT);
   Serial.begin(115200);
+  myServo.write(0);
 }
 void loop() {
   digitalWrite(LED,LOW);
@@ -97,7 +98,7 @@ void loop() {
     }
     else if(rec=='c')
     {
-      myservo.writeMicroseconds(90);
+      myServo.write(120);
       while (!digitalRead(SWITCH))
       {
         calStatus = myDriver.calibrate();
@@ -110,8 +111,9 @@ void loop() {
     }
     else if(rec=='y') 
     {
-      comm_right = toInt(stuff_right);
-      myservo.writeMicroseconds(comm_right);
+      comm_right = stuff_right.toInt();
+      myServo.write(2*comm_right/3);
+      stuff_right="";
     }
     else
     {
