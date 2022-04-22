@@ -57,15 +57,17 @@ def pose_esitmation(frame, aruco_dict_type, matrix_coefficients, distortion_coef
             # # print ("proj: ", x, ", ", y)
             
             # use theta
-            displacement = 50
-            theta = rvec[0][0][1]
+            displacement = 100
+            theta = rvec[0][0][0]
             # print(theta)
             x = (displacement * np.cos(theta)).astype(np.int64)
             y = (displacement * np.sin(theta)).astype(np.int64)
-            x += (tvec[0][0][0] * 100).astype(np.int64)
-            y += (tvec[0][0][1] * 100).astype(np.int64)
-            # print ("proj: ", x, ", ", y) 
-            print(tvec)
+            x += -(tvec[0][0][0] * 3000).astype(np.int64)
+            y += -(tvec[0][0][1] * 3000).astype(np.int64)
+            # x += 200
+            # y += 200
+            print ("proj: ", x, ", ", y) 
+            # print(tvec)
             cv2.circle(frame, (x, y), radius=10, color=(0, 0, 255), thickness=-1)
 
     return frame
