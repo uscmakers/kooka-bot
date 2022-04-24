@@ -27,6 +27,25 @@ def pose_esitmation(frame, aruco_dict_type, matrix_coefficients, distortion_coef
 
     # If markers are detected
     if len(corners) > 0:
+        # check if both 23 and 24 is in ids
+        if 23 in ids and 24 in ids:
+            # draw a line between the two markers
+            x1_sum = corners[0][0][0][0] + corners[0][0][1][0] + corners[0][0][2][0] + corners[0][0][3][0]
+            y1_sum = corners[0][0][0][1] + corners[0][0][1][1] + corners[0][0][2][1] + corners[0][0][3][1]
+            x1_centerPixel = (x1_sum * .25).astype(np.int64)
+            y1_centerPixel = (y1_sum * .25).astype(np.int64)
+            x2_sum = corners[1][0][0][0] + corners[1][0][1][0] + corners[1][0][2][0] + corners[1][0][3][0]
+            y2_sum = corners[1][0][0][1] + corners[1][0][1][1] + corners[1][0][2][1] + corners[1][0][3][1]
+            x2_centerPixel = (x2_sum * .25).astype(np.int64)
+            y2_centerPixel = (y2_sum * .25).astype(np.int64)
+
+            cv2.line(frame, (x1_centerPixel, y1_centerPixel), (x2_centerPixel, y2_centerPixel), (0, 255, 0), 2)
+            
+            # calculate the midpoint of the line
+            midpoint = (((x1_centerPixel + x2_centerPixel) / 2).astype(np.int64), ((y1_centerPixel + y2_centerPixel) / 2).astype(np.int64))
+            
+            cv2.circle(frame, midpoint, 5, (0, 0, 255), -1)
+            
         for i in range(0, len(ids)):
             # Estimate pose of each marker and return the values rvec and tvec---(different from those of camera coefficients)
             rvec, tvec, markerPoints = cv2.aruco.estimatePoseSingleMarkers(corners[i], 0.02, matrix_coefficients,
@@ -37,14 +56,24 @@ def pose_esitmation(frame, aruco_dict_type, matrix_coefficients, distortion_coef
             # Draw Axis
             cv2.aruco.drawAxis(frame, matrix_coefficients, distortion_coefficients, rvec, tvec, 0.01)
             
+            # print("ID:", ids[i][0])
+            
+            
             # print("tvec: ", (abs(tvec[0][0][0]) * 10000).astype(np.int64), ", ", (abs(tvec[0][0][1]) * 10000).astype(np.int64))
             # print("rvec: ", rvec)
             
             # Draw a point 5cm to the right of the marker
+<<<<<<< Updated upstream
             # x = abs(tvec[0][0][0] * 10000).astype(np.int64)
             # y = abs(tvec[0][0][1] * 10000).astype(np.int64)
             # cv2.circle(frame, (x, y), radius=10, color=(0, 0, 255), thickness=-1)
             
+=======
+            # x = abs(tvec[0][0][0] * 5000).astype(np.int64)
+            # y = abs(tvec[0][0][1] * 5000).astype(np.int64)
+            # cv2.circle(frame, (x, y), radius=10, color=(0, 0, 255), thickness=-1)
+
+>>>>>>> Stashed changes
             # Vector math stuff
             # displacement = 100
             # rodr = cv2.Rodrigues(rvec)
