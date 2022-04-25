@@ -1,5 +1,6 @@
 import cv2
 import cv2.aruco as aruco
+import numpy as np
   
 def GetCoords():
     
@@ -25,17 +26,26 @@ def GetCoords():
     
         # print id
         if ids is not None:
-            x_sum = corners[0][0][0][0] + corners[0][0][1][0] + corners[0][0][2][0] + corners[0][0][3][0]
-            y_sum = corners[0][0][0][1] + corners[0][0][1][1] + corners[0][0][2][1] + corners[0][0][3][1]
-    
-            x_centerPixel = x_sum * .25
-            y_centerPixel = y_sum * .25
+            # check if both 23 and 24 is in ids
+            if 23 in ids and 24 in ids:
+                # draw a line between the two markers
+                x1_sum = corners[0][0][0][0] + corners[0][0][1][0] + corners[0][0][2][0] + corners[0][0][3][0]
+                y1_sum = corners[0][0][0][1] + corners[0][0][1][1] + corners[0][0][2][1] + corners[0][0][3][1]
+                x1_centerPixel = (x1_sum * .25).astype(np.int64)
+                y1_centerPixel = (y1_sum * .25).astype(np.int64)
+                x2_sum = corners[1][0][0][0] + corners[1][0][1][0] + corners[1][0][2][0] + corners[1][0][3][0]
+                y2_sum = corners[1][0][0][1] + corners[1][0][1][1] + corners[1][0][2][1] + corners[1][0][3][1]
+                x2_centerPixel = (x2_sum * .25).astype(np.int64)
+                y2_centerPixel = (y2_sum * .25).astype(np.int64)
 
-            coords = (x_centerPixel, y_centerPixel)
+                cv2.line(frame, (x1_centerPixel, y1_centerPixel), (x2_centerPixel, y2_centerPixel), (0, 255, 0), 2)
 
-            print(coords)
-            
-            # break
+                # calculate the midpoint of the line
+                midpoint = (((x1_centerPixel + x2_centerPixel) / 2).astype(np.int64),
+                            ((y1_centerPixel + y2_centerPixel) / 2).astype(np.int64))
+
+                cv2.circle(frame, midpoint, 5, (0, 0, 255), -1)
+                return midpoint
     
         cv2.imshow("frame", frame)
         if cv2.waitKey(1) & 0xFF == ord('q'):
