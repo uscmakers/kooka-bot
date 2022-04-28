@@ -10,9 +10,7 @@ def GetCoords():
     # dictionary = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_4X4_50)
     dictionary = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_ARUCO_ORIGINAL)
     parameters = aruco.DetectorParameters_create()
-    
-    coords = (0, 0)
-    
+        
     while True:
         ret, frame = cap.read()
         if not ret:
@@ -45,6 +43,8 @@ def GetCoords():
                             ((y1_centerPixel + y2_centerPixel) / 2).astype(np.int64))
 
                 cv2.circle(frame, midpoint, 5, (0, 0, 255), -1)
+                cap.release()
+                cv2.destroyAllWindows()
                 return midpoint
     
         cv2.imshow("frame", frame)
@@ -53,7 +53,6 @@ def GetCoords():
 
     cap.release()
     cv2.destroyAllWindows()
-    return coords
 
 if __name__ == '__main__':
   GetCoords()

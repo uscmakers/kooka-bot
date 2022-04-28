@@ -38,6 +38,8 @@ def pose_estimation(frame, aruco_dict_type, matrix_coefficients, distortion_coef
             y2_sum = corners[1][0][0][1] + corners[1][0][1][1] + corners[1][0][2][1] + corners[1][0][3][1]
             x2_centerPixel = (x2_sum * .25).astype(np.int64)
             y2_centerPixel = (y2_sum * .25).astype(np.int64)
+            
+            displacement = returnDistance(x1_centerPixel, y1_centerPixel, x2_centerPixel, y2_centerPixel)
 
             cv2.line(frame, (x1_centerPixel, y1_centerPixel), (x2_centerPixel, y2_centerPixel), (0, 255, 0), 2)
             
@@ -45,6 +47,10 @@ def pose_estimation(frame, aruco_dict_type, matrix_coefficients, distortion_coef
             midpoint = (((x1_centerPixel + x2_centerPixel) / 2).astype(np.int64), ((y1_centerPixel + y2_centerPixel) / 2).astype(np.int64))
             
             cv2.circle(frame, midpoint, 5, (0, 0, 255), -1)
+
+            # video.release()
+            # cv2.destroyAllWindows()
+            # return midpoint, displacement
                         
             
         for i in range(0, len(ids)):
@@ -57,40 +63,11 @@ def pose_estimation(frame, aruco_dict_type, matrix_coefficients, distortion_coef
             # Draw Axis
             cv2.aruco.drawAxis(frame, matrix_coefficients, distortion_coefficients, rvec, tvec, 0.01)
             
-            # print("ID:", ids[i][0])
-            
-            
-            # print("tvec: ", (abs(tvec[0][0][0]) * 10000).astype(np.int64), ", ", (abs(tvec[0][0][1]) * 10000).astype(np.int64))
-            # print("rvec: ", rvec)
-            
-            # Draw a point 5cm to the right of the marker
-            # Vector math stuff
-            # displacement = 100
-            # rodr = cv2.Rodrigues(rvec)
-            # print("potato1", rvec)
-            # # print(rodr[0])
-            # proj = rvec * displacement + tvec * 900
-            # # print("potato2", tvec)
-            # x = ((proj[0][0][0]).astype(np.int64))
-            # y = ((proj[0][0][1]).astype(np.int64))
-            # # print ("proj: ", x, ", ", y)
-            
-            # use theta
-            # displacement = 100
-            # theta = rvec[0][0][0]
-            # # print(theta)
-            # x = (displacement * np.cos(theta)).astype(np.int64)
-            # y = (displacement * np.sin(theta)).astype(np.int64)
-            # x += -(tvec[0][0][0] * 3000).astype(np.int64)
-            # y += -(tvec[0][0][1] * 3000).astype(np.int64)
-            # # x += 200
-            # # y += 200
-            # print ("proj: ", x, ", ", y) 
-            # # print(tvec)
-            # cv2.circle(frame, (x, y), radius=10, color=(0, 0, 255), thickness=-1)
 
     return frame
 
+def returnDistance(x1, y1, x2, y2):
+    return math.sqrt((x2 - x1)**2 + (y2 - y1)**2)
 
 if __name__ == '__main__':
 
