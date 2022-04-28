@@ -7,7 +7,6 @@ from utils import ARUCO_DICT
 import argparse
 import time
 
-
 def pose_estimation(frame, aruco_dict_type, matrix_coefficients, distortion_coefficients):
     '''
     frame - Frame from the video stream
@@ -45,14 +44,8 @@ def pose_estimation(frame, aruco_dict_type, matrix_coefficients, distortion_coef
             
             # calculate the midpoint of the line
             midpoint = (((x1_centerPixel + x2_centerPixel) / 2).astype(np.int64), ((y1_centerPixel + y2_centerPixel) / 2).astype(np.int64))
-            
             cv2.circle(frame, midpoint, 5, (0, 0, 255), -1)
 
-            # video.release()
-            # cv2.destroyAllWindows()
-            # return midpoint, displacement
-                        
-            
         for i in range(0, len(ids)):
             # Estimate pose of each marker and return the values rvec and tvec---(different from those of camera coefficients)
             rvec, tvec, markerPoints = cv2.aruco.estimatePoseSingleMarkers(corners[i], 0.02, matrix_coefficients,
@@ -69,21 +62,22 @@ def pose_estimation(frame, aruco_dict_type, matrix_coefficients, distortion_coef
 def returnDistance(x1, y1, x2, y2):
     return math.sqrt((x2 - x1)**2 + (y2 - y1)**2)
 
-if __name__ == '__main__':
 
-    ap = argparse.ArgumentParser()
-    ap.add_argument("-k", "--K_Matrix", required=True, help="Path to calibration matrix (numpy file)")
-    ap.add_argument("-d", "--D_Coeff", required=True, help="Path to distortion coefficients (numpy file)")
-    ap.add_argument("-t", "--type", type=str, default="DICT_ARUCO_ORIGINAL", help="Type of ArUCo tag to detect")
-    args = vars(ap.parse_args())
+def main():
+    #--K_Matrix calibration_matrix.npy --D_Coeff distortion_coefficients.npy --type DICT_5X5_100
+    # ap = argparse.ArgumentParser()
+    # ap.add_argument("-k", "--K_Matrix", required=True, help="Path to calibration matrix (numpy file)")
+    # ap.add_argument("-d", "--D_Coeff", required=True, help="Path to distortion coefficients (numpy file)")
+    # ap.add_argument("-t", "--type", type=str, default="DICT_ARUCO_ORIGINAL", help="Type of ArUCo tag to detect")
+    # args = vars(ap.parse_args())
 
-    if ARUCO_DICT.get(args["type"], None) is None:
-        print(f"ArUCo tag type '{args['type']}' is not supported")
+    if ARUCO_DICT.get("DICT_5X5_100", None) is None:
+        print(f"ArUCo tag type is not supported")
         sys.exit(0)
 
-    aruco_dict_type = ARUCO_DICT[args["type"]]
-    calibration_matrix_path = args["K_Matrix"]
-    distortion_coefficients_path = args["D_Coeff"]
+    aruco_dict_type = ARUCO_DICT["DICT_5X5_100"]
+    calibration_matrix_path = "calibration_matrix.npy"
+    distortion_coefficients_path = "distortion_coefficients.npy"
 
     k = np.load(calibration_matrix_path)
     d = np.load(distortion_coefficients_path)
@@ -107,3 +101,7 @@ if __name__ == '__main__':
 
     video.release()
     cv2.destroyAllWindows()
+    return output
+
+if __name__ == '__main__':
+    main()
