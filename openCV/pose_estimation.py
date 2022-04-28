@@ -45,7 +45,8 @@ def pose_estimation(frame, aruco_dict_type, matrix_coefficients, distortion_coef
             # calculate the midpoint of the line
             midpoint = (((x1_centerPixel + x2_centerPixel) / 2).astype(np.int64), ((y1_centerPixel + y2_centerPixel) / 2).astype(np.int64))
             cv2.circle(frame, midpoint, 5, (0, 0, 255), -1)
-
+            return midpoint, displacement
+            
         for i in range(0, len(ids)):
             # Estimate pose of each marker and return the values rvec and tvec---(different from those of camera coefficients)
             rvec, tvec, markerPoints = cv2.aruco.estimatePoseSingleMarkers(corners[i], 0.02, matrix_coefficients,
@@ -55,9 +56,9 @@ def pose_estimation(frame, aruco_dict_type, matrix_coefficients, distortion_coef
 
             # Draw Axis
             cv2.aruco.drawAxis(frame, matrix_coefficients, distortion_coefficients, rvec, tvec, 0.01)
-            
 
-    return frame
+    cv2.imshow('Estimated Pose', frame)
+
 
 def returnDistance(x1, y1, x2, y2):
     return math.sqrt((x2 - x1)**2 + (y2 - y1)**2)
@@ -92,8 +93,12 @@ def main():
             break
 
         output = pose_estimation(frame, aruco_dict_type, k, d)
-
-        cv2.imshow('Estimated Pose', output)
+        
+        if output is not None:
+            print(output)
+            video.release()
+            cv2.destroyAllWindows()
+            return output
 
         key = cv2.waitKey(1) & 0xFF
         if key == ord('q'):
@@ -101,7 +106,6 @@ def main():
 
     video.release()
     cv2.destroyAllWindows()
-    return output
 
 if __name__ == '__main__':
     main()
