@@ -1,9 +1,9 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
-from consoletest import Console
+from console import Console
 import numpy as np
 import pyqtgraph.opengl as gl
 from vis import visualizer
-from kookatest import kookabot
+from kooka import kookabot
 import math
 from comm import comm
 import serial
@@ -54,7 +54,10 @@ class UI(QtWidgets.QMainWindow, Console):
         self.angles = []
         self.deltastosend = []
         self.deltastosendOpposite = []
+        self.xgoa, self.ygoa, self.zgoa = None, None, None
         print(self.servoAngle)
+        self.every.clicked.connect(self.everything)
+  
 
     def connecting(self):
         if(self.fullyConencted == False):
@@ -153,7 +156,20 @@ class UI(QtWidgets.QMainWindow, Console):
 
 
     def send_cmd_cartesien(self):
+        '''
+        cv_results = mainn() # ((x,y), displacement)
+
+        pixel_to_meter = .28 / cv_results[1]
+        x_meter = cv_results[0][0] * pixel_to_meter
+        y_meter = cv_results[0][1] * pixel_to_meter
+        x_meter += 0.12#.381
+        y_meter -= 0.228#.254
+        print(x_meter)
+        print(y_meter)
         #print(self.kooka.current_joint_ang)
+        self.kooka.currenAngUpdate()
+        self.xgoa,self.ygoa,self.zgoa = x_meter, y_meter, 0.63
+        '''
         self.kooka.currenAngUpdate()
         goal = [float(self.xslot.text()), float(self.yslot.text()), float(self.zslot.text())]
         
@@ -235,12 +251,17 @@ class UI(QtWidgets.QMainWindow, Console):
         '''
 
         # xyz coordinates where the kooka starts stirring
+        #self.newgoalcenter = [float(self.xslot.text()), float(self.yslot.text()), float(self.zslot.text())]
+        #center_x = self.newgoalcenter[0]-float(self.kooka.stir_radius)
+        #center_y = self.newgoalcenter[1]
+        #center_z = self.newgoalcenter[2]
+
         self.newgoalcenter = [float(self.xslot.text()), float(self.yslot.text()), float(self.zslot.text())]
         center_x = self.newgoalcenter[0]-float(self.kooka.stir_radius)
         center_y = self.newgoalcenter[1]
         center_z = self.newgoalcenter[2]
 
-        # xyz coordinates of the kooka's stirring trajectory based on where the kooka starts stirring
+        # xyz coordinates of the kooka's stirring trajectory based on where the kooka starts stirring  
         for i in range(self.kooka.points):
             self.kooka.x_stir[i] = center_x + self.kooka.stir_radius*math.cos(2*math.pi*i/self.kooka.points)
             self.kooka.y_stir[i] = center_y + self.kooka.stir_radius*math.sin(2*math.pi*i/self.kooka.points)
@@ -455,4 +476,9 @@ class UI(QtWidgets.QMainWindow, Console):
 
 
 
-        
+    def everything(self):
+        self.send_cmd_cartesien()
+        time.sleep(0.5)
+        self.trajplan()
+        time.sleep(0.5)
+        self.stirring()

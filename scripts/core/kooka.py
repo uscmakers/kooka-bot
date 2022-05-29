@@ -24,7 +24,7 @@ class kookabot:
         self.points = 60
 
         # coocking trajectories
-        self.x_stir = np.zeros(self.points)
+        self.x_stir = np.zeros(self.points)      
         self.y_stir = np.zeros(self.points)
         self.z_stir = np.zeros(self.points)
         self.stir_radius = 0.05
@@ -117,7 +117,7 @@ class kookabot:
         print()
 
     # create stirring trajectories
-    def stir(self):
+    def stir(self):                
         center_x = self.x[2]-self.stir_radius
         center_y = self.y[2]
         center_z = self.z[2]
@@ -150,10 +150,10 @@ class kookabot:
 
     def setPoints(self, num):
         self.points = int(num)
-        self.x_stir = np.zeros(self.points)
+        self.x_stir = np.zeros(self.points)      
         self.y_stir = np.zeros(self.points)
         self.z_stir = np.zeros(self.points)
 
-    # calculate the angle displacements required to make to move from the current to the new desired positions
+    # calculate the angle displacements required to make to move from the current to the new desired positions 
     def setDeltaThetas(self):
         self.deltaThetas = self.diff()

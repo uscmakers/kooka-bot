@@ -1,5 +1,6 @@
 import math
 import numpy as np
+import matplotlib.pyplot as plt
 from sympy import sin, cos, symbols, lambdify
 
 class DH:
