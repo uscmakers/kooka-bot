@@ -1,6 +1,6 @@
 import sys
 from PyQt5.QtWidgets import QApplication
-from ui import UI
+from uitest import UI
 
 def main():
     app = QApplication(sys.argv)
@@ -15,3 +15,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+
