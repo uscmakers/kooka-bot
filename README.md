@@ -33,7 +33,7 @@ The purpose of the GUI shown above is to provide users with intuitive understand
 * Grace True (mechanical)
 * Isaac Gerstmann (software)
 * Matt Liberson (electrical & software)
-* Misha Kuznetsov (mechanical)
+* Misha Kuznetsov (PM)
 * Sam Jeon (software)
 * Spencer Lin (software)
 * Will Stewart (software)
